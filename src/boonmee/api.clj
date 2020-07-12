@@ -13,10 +13,11 @@
 
 (defn open
   [file]
-  (tsserver-rpc :open {:file file}))
+  (tsserver-rpc :open {:file (str file)}))
 
 (defn completions
   [file line offset]
-  (tsserver-rpc :completionInfo {:file   file
+  (tsserver-rpc :completionInfo {:file   (str file)
                                  :line   line
-                                 :offset offset}))
+                                 :offset offset
+                                 :includeExternalModuleExports true}))

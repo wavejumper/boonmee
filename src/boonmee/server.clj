@@ -2,7 +2,7 @@
   (:require [integrant.core :as ig]
             [clojure.core.async :as async]
             [clojure.tools.logging :as log]
-            [boonmee.compiler :as compiler]))
+            [boonmee.handlers :as handlers]))
 
 (defmulti
  handle-client-request
@@ -14,20 +14,16 @@
   (log/warn "Unsupported request " req))
 
 (defmethod handle-client-request "open"
-  [_ _ _ req]
-  (try
-    (let [file     (-> req :arguments :file)
-          compiled (compiler/compile file)]
+  [_ tsserver-req-ch _ req]
+  (handlers/handle-open tsserver-req-ch req))
 
-      )
-    (catch Throwable e
-      (log/error e "error handling request" req))))
-
+(defmethod handle-client-request "completions"
+  [_ tsserver-req-ch _ req]
+  (handlers/handle-completions tsserver-req-ch req))
 
 (defn handle-tsserver-response
   [tsserver-req-ch client-resp-ch resp]
-
-  )
+  (log/info "Resp => " resp))
 
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
@@ -37,11 +33,17 @@
     (async/alt!
      client-req-ch
      ([req]
-      (handle-client-request ctx tsserver-req-ch client-resp-ch req))
+      (try
+        (handle-client-request ctx tsserver-req-ch client-resp-ch req)
+        (catch Throwable e
+          (log/errorf e "exception handling request" req))))
 
      tsserver-resp-ch
      ([resp]
-      (handle-tsserver-response tsserver-req-ch client-resp-ch resp)))
+      (try
+        (handle-tsserver-response tsserver-req-ch client-resp-ch resp)
+        (catch Throwable e
+          (log/errorf e "exception handling response" resp)))))
     (recur)))
 
 (defmethod ig/halt-key! :boonmee/server

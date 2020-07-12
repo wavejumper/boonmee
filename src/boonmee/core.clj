@@ -1,6 +1,7 @@
 (ns boonmee.core
   (:require [boonmee.tsserver]
             [boonmee.server]
+            [boonmee.client]
             [clojure.core.async :as async]
             [integrant.core :as ig]))
 
@@ -23,12 +24,14 @@
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
-                                         :ctx              {}}})
+                                         :ctx              {}}
+   :boonmee/client                      {:client-req-ch  (ig/ref :chan/client-req-ch)
+                                         :client-resp-ch (ig/ref :chan/client-resp-ch)}})
 
 (defonce system
   (atom nil))
 
-(defn start
+(defn start!
   []
   (reset! system (ig/init (config))))
 
@@ -41,3 +44,11 @@
   [req]
   (when-let [in (some-> system deref :boonmee/client :in)]
     (async/put! in req)))
+
+(comment
+ (start!)
+ (request! {:command   "open"
+            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
+ (request! {:command   "completions"
+            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
+ )

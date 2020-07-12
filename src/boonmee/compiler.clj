@@ -2,8 +2,7 @@
   (:refer-clojure :exclude [compile])
   (:require [clojure.string :as str]
             [boonmee.analyzer :as ana]
-            [boonmee.util :as util]
-            [clojure.java.io :as io]))
+            [boonmee.util :as util]))
 
 (defn import-statements
   [args]
@@ -38,7 +37,7 @@
   [{:keys [package-name args]}]
   (if (empty? args)
     (str "import " package-name ";")
-    (str "import " (import-statements->str (import-statements args)) " from " package-name ";")))
+    (str "import " (import-statements->str (import-statements args)) " from \"" package-name "\";")))
 
 (defn compile-ns
   [es6-deps]
@@ -46,7 +45,7 @@
 
 (defn compile
   [file]
-  (let [src (slurp (io/file file))
+  (let [src (slurp file)
         ctx (ana/analyze src)]
     {:ctx    ctx
      :js-out (compile-ns (:es6-deps ctx))
