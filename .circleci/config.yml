@@ -1,0 +1,29 @@
+version: 2.1
+
+executors:
+  lein:
+    docker:
+      - image: openjdk-14-lein-2.9.3-buster
+    working_directory: ~/repo
+
+jobs:
+  boonmee:
+    executor: lein
+    working_directory: ~/repo
+    steps:
+      - checkout:
+          path: ~/repo
+      - restore_cache:
+          key: boonmee-{{ checksum "project.clj" }}
+      - run: lein deps
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: boonmee-{{ checksum "project.clj" }}
+      - run: lein kaocha
+
+workflows:
+  version: 2.1
+  general_build:
+    jobs:
+      - boonmee
