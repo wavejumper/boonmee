@@ -26,11 +26,32 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 
 ## Usage
 
-
-
 ## Clojurescript 
 
 Note: boonmee analyses `npm-deps` only. If you rely on cljsjs you're out of luck.
 
+## Usage
 
+File:
+```
+(ns tonal.core
+  (:require ["@tonaljs/tonal" :refer [Midi]]))
+Midi/ ;; <--- your completions go here
+```
 
+Send some RPC to my new project:
+```
+(request! {:command   "open"
+            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
+```
+
+Then request some completions:
+```
+(request! {:command   "completions"
+            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs" :line 4 :offset 6}})
+```
+
+gets response:
+````
+{"seq":0,"type":"response","command":"completionInfo","request_seq":6,"success":true,"body":{"isGlobalCompletion":false,"isMemberCompletion":true,"isNewIdentifierLocation":false,"entries":[{"name":"freqToMidi","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"isMidi","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"midiToFreq","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"midiToNoteName","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"toMidi","kind":"property","kindModifiers":"declare","sortText":"0"}]}}
+```
