@@ -23,7 +23,7 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 - [x] Completions (require, fn calls)
 - [x] Go-to-definition
 
-### Linting
+### Linting (TODO):
 
 - [ ] Warn on unused imports
 - [ ] Warn on deprecated methods
