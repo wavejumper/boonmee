@@ -38,7 +38,11 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 
 ### NPM deps
 
-Note: boonmee analyses `npm-deps` only. If you rely on cljsjs you're out of luck.
+Note: boonmee analyses `npm-deps` only from a `package.json` file found in the root of your project. 
+
+If you rely on cljsjs you're out of luck. 
+
+If you are a [shadow-cljs](http://shadow-cljs.org/) user, using boonmee should be a seamless experience.
 
 ### @types
 
