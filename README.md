@@ -17,41 +17,24 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 
 ## Features
 
-* Unused imports
-* Warn on deprecated methods
-* Docstrings
-* Autocompletion (require, fn calls)
-* Go-to-definition
-* Basic type-checking
+### Editor functionality:
 
-## Usage
+[x] Quickinfo (documentation, type hints, jsdoc, deprecation)
+[x] Completions (require, fn calls)
+[x] Go-to-definition
+
+### Linting
+
+[ ] Warn on unused imports
+[ ] Warn on deprecated methods
+[ ] Warn on no such method
+[ ] Basic type-checking
+
+## Installation
+
 
 ## Clojurescript 
 
 Note: boonmee analyses `npm-deps` only. If you rely on cljsjs you're out of luck.
 
-## Usage
-
-File:
-```
-(ns tonal.core
-  (:require ["@tonaljs/tonal" :refer [Midi]]))
-Midi/ ;; <--- your completions go here
-```
-
-Send some RPC to my new project:
-```
-(request! {:command   "open"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
-```
-
-Then request some completions:
-```
-(request! {:command   "completions"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs" :line 4 :offset 6}})
-```
-
-gets response:
-````
-{"seq":0,"type":"response","command":"completionInfo","request_seq":6,"success":true,"body":{"isGlobalCompletion":false,"isMemberCompletion":true,"isNewIdentifierLocation":false,"entries":[{"name":"freqToMidi","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"isMidi","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"midiToFreq","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"midiToNoteName","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"toMidi","kind":"property","kindModifiers":"declare","sortText":"0"}]}}
-```
+## Example RPC
