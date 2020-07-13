@@ -22,8 +22,9 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 - [x] Quickinfo (documentation, type hints, jsdoc -- deprecation/etc)
 - [x] Completions (require, fn calls)
 - [x] Go-to-definition
+- [x] Auto-install/suggest `@types` packages
 
-### Linting (TODO):
+### Linting (WIP):
 
 - [ ] Warn on unused imports
 - [ ] Warn on deprecated methods
@@ -35,6 +36,18 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 
 ## Clojurescript 
 
+### NPM deps
+
 Note: boonmee analyses `npm-deps` only. If you rely on cljsjs you're out of luck.
+
+### @types
+
+boonmee's functionality comes from the [TypeScript](https://www.typescriptlang.org/) compiler. 
+
+That means a `@types/*` package should be installed as a dev dependency, if the library you require is written in vanllia JavaScript (a rarity these days!):
+
+```
+npm install --save-dev @types/react
+```
 
 ## Example RPC
