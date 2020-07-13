@@ -51,5 +51,5 @@
             :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
  (request! {:command   "completions"
             :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
-                        :line  4
-                        :offset 8}}))
+                        :line  6
+                        :offset 6}}))

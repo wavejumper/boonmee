@@ -15,11 +15,19 @@
 
 (defmethod handle-client-request "open"
   [_ tsserver-req-ch _ req]
-  (handlers/handle-open tsserver-req-ch req))
+  #_(handlers/handle-open tsserver-req-ch req))
 
 (defmethod handle-client-request "completions"
   [_ tsserver-req-ch _ req]
   (handlers/handle-completions tsserver-req-ch req))
+
+(defmethod handle-client-request "quickinfo"
+  [_ tsserver-req-ch _ req]
+  (handlers/handle-quick-info tsserver-req-ch req))
+
+(defmethod handle-client-request "definition"
+  [_ tsserver-req-ch _ req]
+  (handlers/handle-definition tsserver-req-ch req))
 
 (defn handle-tsserver-response
   [tsserver-req-ch client-resp-ch resp]

@@ -6,15 +6,39 @@
             [boonmee.util :as util]
             [clojure.core.async :as async]))
 
-(defn handle-open
+(defn handle-definition
   [tsserver-req-ch req]
   (let [file         (-> req :arguments :file io/file)
-        form         [(es6-import)]
+        loc          [(-> req :arguments :line)
+                      (-> req :arguments :offset)]
+        form         [(es6-import)
+                      (es6-symbol {:loc     loc
+                                   :cursor? true})]
         compiled     (compiler/compile file form)
         project-root (util/project-root file)
-        out-file     (util/spit-src project-root compiled)]
+        out-file     (util/spit-src project-root compiled)
+        js-line      (-> compiled :compiled :line)
+        js-offset    (-> compiled :compiled :offset)]
 
-    (async/put! tsserver-req-ch (api/open out-file))))
+    (async/put! tsserver-req-ch (api/open out-file))
+    (async/put! tsserver-req-ch (api/definition out-file js-line js-offset))))
+
+(defn handle-quick-info
+  [tsserver-req-ch req]
+  (let [file         (-> req :arguments :file io/file)
+        loc          [(-> req :arguments :line)
+                      (-> req :arguments :offset)]
+        form         [(es6-import)
+                      (es6-symbol {:loc     loc
+                                   :cursor? true})]
+        compiled     (compiler/compile file form)
+        project-root (util/project-root file)
+        out-file     (util/spit-src project-root compiled)
+        js-line      (-> compiled :compiled :line)
+        js-offset    (-> compiled :compiled :offset)]
+
+    (async/put! tsserver-req-ch (api/open out-file))
+    (async/put! tsserver-req-ch (api/quick-info out-file js-line js-offset))))
 
 (defn handle-completions
   [tsserver-req-ch req]

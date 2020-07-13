@@ -9,6 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tonaljs/tonal": "^4.0.2"
+    "@tonaljs/tonal": "^4.0.2",
+    "react": "^16.13.1"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.43"
   }
 }
