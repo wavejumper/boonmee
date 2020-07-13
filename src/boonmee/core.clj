@@ -47,8 +47,9 @@
 
 (comment
  (start!)
- (request! {:command   "open"
+ #_(request! {:command   "open"
             :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
  (request! {:command   "completions"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
- )
+            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
+                        :line  4
+                        :offset 8}}))

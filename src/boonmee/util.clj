@@ -17,18 +17,11 @@
         (recur (io/file parent))))))
 
 (defn spit-src
-  [^File project-root {:keys [hash js-out]}]
-  (let [out-dir  (io/file project-root ".boonmee")
-        out-file (io/file out-dir (str hash ".ts"))]
-    (io/make-parents out-dir)
-    (io/make-parents out-file)
-    (spit (str out-file) js-out)
-    out-file))
-
-(spit-src
- (project-root (io/file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal"))
- {:js-out "foo"
-  :hash "1234"
-  }
-
- )
+  [^File project-root {:keys [file-name compiled]}]
+  (when (and project-root (.exists project-root))
+    (let [out-dir  (io/file project-root ".boonmee")
+          out-file (io/file out-dir file-name)]
+      (io/make-parents out-dir)
+      (io/make-parents out-file)
+      (spit (str out-file) (:js-out compiled))
+      out-file)))

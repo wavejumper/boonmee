@@ -26,7 +26,7 @@
                  (log/error err))
      :in       (async/go-loop []
                  (when-let [msg (async/<! tsserver-req-ch)]
-                   (log/debugf "Incoming message to tsserver: %s" (cheshire/generate-string msg))
+                   (log/infof "Incoming message to tsserver: %s" (cheshire/generate-string msg))
                    (sh/feed-from-string tsserver (str (cheshire/generate-string msg) \newline))
                    (recur)))}))
 

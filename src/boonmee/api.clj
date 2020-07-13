@@ -1,12 +1,8 @@
-(ns boonmee.api
-  (:import (java.util.concurrent.atomic AtomicInteger)))
-
-(defonce tsserver-seq
-  (AtomicInteger. 0))
+(ns boonmee.api)
 
 (defn tsserver-rpc
   [command arguments]
-  {:seq       (.getAndIncrement tsserver-seq)
+  {:seq       0
    :type      "request"
    :command   (name command)
    :arguments arguments})
@@ -21,3 +17,7 @@
                                  :line   line
                                  :offset offset
                                  :includeExternalModuleExports true}))
+
+(defn reload
+  [file]
+  (tsserver-rpc :reload {:tmpfile (str file)}))
