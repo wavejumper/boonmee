@@ -19,16 +19,16 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 
 ### Editor functionality:
 
-[x] Quickinfo (documentation, type hints, jsdoc, deprecation)
-[x] Completions (require, fn calls)
-[x] Go-to-definition
+- [x] Quickinfo (documentation, type hints, jsdoc -- deprecation/etc)
+- [x] Completions (require, fn calls)
+- [x] Go-to-definition
 
 ### Linting
 
-[ ] Warn on unused imports
-[ ] Warn on deprecated methods
-[ ] Warn on no such method
-[ ] Basic type-checking
+- [ ] Warn on unused imports
+- [ ] Warn on deprecated methods
+- [ ] Warn on no such method
+- [ ] Basic type-checking
 
 ## Installation
 
