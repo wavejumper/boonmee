@@ -2,9 +2,12 @@
   (:require [boonmee.server]
             [boonmee.tsserver.server]
             [boonmee.util :as util]
+            [clojure.java.io :as io]
             [clojure.core.async :as async]
             [cheshire.core :as cheshire]
-            [integrant.core :as ig])
+            [integrant.core :as ig]
+            [taoensso.timbre :as timbre]
+            [taoensso.timbre.appenders.core :as appenders])
   (:gen-class))
 
 (defn init-stdio-client!
@@ -19,7 +22,7 @@
             (let [req (cheshire/parse-string-strict line)]
               (async/put! client-req-ch req))
             (catch Throwable e
-              (println e "Failed to parse req " line))))
+              (timbre/errorf e "Failed to parse req %s" line))))
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
             (print-dup (cheshire/generate-string resp) out)
@@ -29,6 +32,13 @@
   :boonmee/stdio-client
   [_ {:keys [in]}]
   (some-> in async/close!))
+
+(defmethod ig/init-key :boonmee/stdio-logger
+  [_ {:keys [fname enabled? level]}]
+  (timbre/merge-config!
+   {:level     level
+    :appenders {:spit    (appenders/spit-appender {:fname fname :enabled? enabled?})
+                :println {:enabled? false}}}))
 
 (defn config []
   {[:async/chan :chan/tsserver-resp-ch] {}
@@ -44,8 +54,11 @@
                                          :ctx              {}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
-                                         :in             System/in
-                                         :out            System/out}})
+                                         :in             *in*
+                                         :out            *out*}
+   :boonmee/stdio-logger                {:fname    (io/file (System/getProperty "java.io.tmpdir") "boonmee.log")
+                                         :enabled? true
+                                         :level    :info}})
 
 (defn -main [& _]
   (ig/init (config)))

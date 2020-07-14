@@ -7,7 +7,8 @@
                  [me.raynes/conch "0.8.0"]
                  [cheshire "5.10.0"]
                  [rewrite-clj "0.6.1"]
-                 [integrant "0.8.0"]]
+                 [integrant "0.8.0"]
+                 [com.taoensso/timbre "4.10.0"]]
 
   :profiles {:kaocha       {:dependencies [[lambdaisland/kaocha "1.0.632"]]}
              :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]

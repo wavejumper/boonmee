@@ -2,7 +2,8 @@
   (:require [boonmee.server]
             [boonmee.tsserver.server]
             [integrant.core :as ig]
-            [clojure.core.async :as async])
+            [clojure.core.async :as async]
+            [taoensso.timbre :as timbre])
   (:gen-class))
 
 (defmethod ig/init-key
@@ -10,7 +11,7 @@
   [_ {:keys [client-req-ch client-resp-ch]}]
   {:out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
-            (println resp)
+            (timbre/info resp)
             (recur)))
    :in  client-req-ch})
 
@@ -48,7 +49,7 @@
 
 (defn request!
   [req]
-  (when-let [in (some-> system deref :boonmee/client :in)]
+  (when-let [in (some-> system deref :boonmee/dev-client :in)]
     (async/put! in req)))
 
 (defn -main
@@ -63,3 +64,10 @@
             :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
                         :line  6
                         :offset 6}}))
+
+(comment
+ (:compiled
+  (compiler/compile
+   (io/file "examples/tonal/src/tonal/core.cljs")
+   [(es6-import)
+    (es6-symbol {:loc [4 3] :cursor? true})])))

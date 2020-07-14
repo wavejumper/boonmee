@@ -5,7 +5,8 @@
             [boonmee.tsserver.api :as api]
             [boonmee.compiler.core :as compiler]
             [boonmee.compiler.dsl :refer [es6-import es6-symbol]]
-            [boonmee.util :as util]))
+            [boonmee.util :as util]
+            [taoensso.timbre :as timbre]))
 
 (defn handle-definition
   [tsserver-req-ch req]
@@ -65,7 +66,7 @@
 
 (defmethod handle-client-request :default
   [_ _ _ req]
-  (println "Unsupported request " req))
+  (timbre/warnf "Unsupported client request: %s" req))
 
 (defmethod handle-client-request "open"
   [_ tsserver-req-ch _ req]
@@ -84,8 +85,7 @@
   (handle-definition tsserver-req-ch req))
 
 (defn handle-tsserver-response
-  [tsserver-req-ch client-resp-ch resp]
-  (println "Resp => " resp))
+  [tsserver-req-ch client-resp-ch resp])
 
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
@@ -98,26 +98,19 @@
       (try
         (handle-client-request ctx tsserver-req-ch client-resp-ch req)
         (catch Throwable e
-          (println e "exception handling request" req))))
+          (timbre/errorf e "Exception handling client request: %s" req))))
 
      tsserver-resp-ch
      ([resp]
       (try
         (handle-tsserver-response tsserver-req-ch client-resp-ch resp)
         (catch Throwable e
-          (println e "exception handling response" resp)))))
+          (timbre/errorf e "Exception handling tsserver response: %s" resp)))))
     (recur)))
 
 (defmethod ig/halt-key! :boonmee/server
   [_ ch]
   (some-> ch async/close!))
-
-(comment
- (:compiled
-  (compiler/compile
-   (io/file "examples/tonal/src/tonal/core.cljs")
-   [(es6-import)
-    (es6-symbol {:loc [4 3] :cursor? true})])))
 
 (defmethod ig/init-key :async/chan
   [_ _]

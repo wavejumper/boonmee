@@ -3,21 +3,22 @@
             [cheshire.core :as cheshire]
             [clojure.core.async :as async]
             [integrant.core :as ig]
-            [boonmee.util :as util])
-  (:import (java.io InputStreamReader)
+            [boonmee.util :as util]
+            [taoensso.timbre :as timbre])
+  (:import (java.io InputStreamReader InputStream)
            (java.nio.charset StandardCharsets)))
 
 (defmethod ig/init-key :boonmee/tsserver
   [_ {:keys [tsserver-resp-ch tsserver-req-ch]}]
   (let [tsserver (sh/proc "tsserver")]
     {:tsserver tsserver
-     :out      (util/line-handler [out (InputStreamReader. (:out tsserver) StandardCharsets/UTF_8)]
+     :out      (util/line-handler [out (InputStreamReader. ^InputStream (:out tsserver) StandardCharsets/UTF_8)]
+                 (timbre/debugf "Response from tsserver: %s" out)
                  (async/put! tsserver-resp-ch out))
-     :err      (util/line-handler [err (InputStreamReader. (:err tsserver) StandardCharsets/UTF_8)]
-                 (println err))
+     :err      (util/line-handler [err (InputStreamReader. ^InputStream (:err tsserver) StandardCharsets/UTF_8)]
+                 (timbre/errorf "Error from tsserver: %s" err))
      :in       (async/go-loop []
                  (when-let [msg (async/<! tsserver-req-ch)]
-                   (println "Incoming message to tsserver: %s" (cheshire/generate-string msg))
                    (sh/feed-from-string tsserver (str (cheshire/generate-string msg) \newline))
                    (recur)))}))
 

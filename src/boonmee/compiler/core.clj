@@ -2,7 +2,8 @@
   (:refer-clojure :exclude [compile])
   (:require [clojure.string :as str]
             [boonmee.compiler.analyser :as ana]
-            [boonmee.util :as util])
+            [boonmee.util :as util]
+            [taoensso.timbre :as timbre])
   (:import (java.io File)))
 
 (defn import-statements
@@ -110,11 +111,13 @@
 
 (defn compile
   [^File file form]
-  (let [ctx      (ana/analyse file)
-        ext      (last (str/split (.getName file) #"\."))
-        compiled (compile-form ctx form)]
+  (let [ctx       (ana/analyse file)
+        ext       (last (str/split (.getName file) #"\."))
+        compiled  (compile-form ctx form)
+        file-name (file-name (:ns ctx) ext (:js-out compiled))]
+    (timbre/debugf "Compiling %s to %s" (:ns ctx) file-name)
     {:ctx       ctx
      :compiled  compiled
      :ext       ext
      :form      form
-     :file-name (file-name (:ns ctx) ext (:js-out compiled))}))
+     :file-name file-name}))
