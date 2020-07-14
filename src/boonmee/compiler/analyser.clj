@@ -1,4 +1,4 @@
-(ns boonmee.analyser
+(ns boonmee.compiler.analyser
   (:require [rewrite-clj.zip :as z]
             [clojure.string :as str])
   (:import (clojure.lang Symbol PersistentList)
@@ -12,8 +12,8 @@
 (defn es6-deps
   [data]
   (when-let [ns (-> (z/find-value data z/next 'ns)
-               z/up
-               z/sexpr)]
+                    z/up
+                    z/sexpr)]
     {:ns   (second ns)
      :deps (->> ns
                 (filter list?)
@@ -38,7 +38,7 @@
 
 (defn analyse
   [^File f]
-  (let [zip  (z/of-file f {:track-position? true})
+  (let [zip (z/of-file f {:track-position? true})
         {:keys [ns deps]} (es6-deps zip)]
     {:es6-deps deps
      :es6-syms (set (es6-syms deps))
@@ -46,27 +46,29 @@
      :zip      zip}))
 
 (defn location
-  [{:keys [zip]} [x y]]
+  [{:keys [zip]} [line offset]]
   (loop [zip zip]
     (let [next-zip (z/next zip)
-          [curr-x curr-y] (z/position next-zip)]
+          [curr-line curr-offset] (z/position next-zip)
+          on-line? (= curr-line line)]
       (cond
         (z/end? next-zip)
         next-zip
 
-        (< curr-x x)
+        (< curr-line line)
         (recur next-zip)
 
-        (= curr-x x)
-        (cond
-          (>= curr-y y)
-          zip
+        (and on-line? (>= curr-offset offset))
+        zip
 
-          (> (-> next-zip z/next z/position second) x)
-          next-zip
+        (and on-line? (> (-> next-zip z/next z/position second) line))
+        next-zip
 
-          :else
-          (recur next-zip))))))
+        on-line?
+        (recur next-zip)
+
+        :else
+        next-zip))))
 
 (defprotocol IInterop
   (interop [this ctx zip]))

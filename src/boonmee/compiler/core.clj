@@ -1,7 +1,7 @@
 (ns boonmee.compiler.core
-  (:refer-clojure :exclude [compile import])
+  (:refer-clojure :exclude [compile])
   (:require [clojure.string :as str]
-            [boonmee.analyser :as ana]
+            [boonmee.compiler.analyser :as ana]
             [boonmee.util :as util])
   (:import (java.io File)))
 
@@ -37,8 +37,8 @@
 (defn compile-es6-require
   [{:keys [package-name args]}]
   (if (empty? args)
-    (str "import " package-name ";")
-    (str "import " (import-statements->str (import-statements args)) " from \"" package-name "\";")))
+    (str "import '" package-name "';")
+    (str "import " (import-statements->str (import-statements args)) " from '" package-name "';")))
 
 (defn compile-ns
   [es6-deps]

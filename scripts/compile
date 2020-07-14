@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Adapted from https://github.com/borkdude/clj-kondo/blob/master/script/compile
+
+if [ -z "$GRAALVM_HOME" ]; then
+    echo "Please set GRAALVM_HOME"
+    exit 1
+fi
+
+export JAVA_HOME=$GRAALVM_HOME
+export PATH=$GRAALVM_HOME/bin:$PATH
+
+"$GRAALVM_HOME/bin/gu" install native-image || true
+
+lein with-profiles +native-image "do" clean, uberjar
+
+args=( "-jar" "target/boonmee-0.1.0-standalone.jar" \
+              "-H:Name=boonmee" \
+              "-H:+ReportExceptionStackTraces" \
+              "-J-Dclojure.spec.skip-macros=true" \
+              "-J-Dclojure.compiler.direct-linking=true" \
+              "-H:ReflectionConfigurationFiles=reflection.json" \
+              "--initialize-at-build-time"  \
+              "-H:Log=registerResource:" \
+              "--verbose" \
+              "--no-fallback" \
+              "--no-server" \
+              "-J-Xmx3g" \
+              "--report-unsupported-elements-at-runtime" )
+
+$GRAALVM_HOME/bin/native-image "${args[@]}"

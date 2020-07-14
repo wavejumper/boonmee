@@ -1,8 +1,62 @@
 (ns boonmee.server
   (:require [integrant.core :as ig]
             [clojure.core.async :as async]
-            [clojure.tools.logging :as log]
-            [boonmee.handlers :as handlers]))
+            [clojure.java.io :as io]
+            [boonmee.tsserver.api :as api]
+            [boonmee.compiler.core :as compiler]
+            [boonmee.compiler.dsl :refer [es6-import es6-symbol]]
+            [boonmee.util :as util]))
+
+(defn handle-definition
+  [tsserver-req-ch req]
+  (let [file         (-> req :arguments :file io/file)
+        loc          [(-> req :arguments :line)
+                      (-> req :arguments :offset)]
+        form         [(es6-import)
+                      (es6-symbol {:loc     loc
+                                   :cursor? true})]
+        compiled     (compiler/compile file form)
+        project-root (util/project-root file)
+        out-file     (util/spit-src project-root compiled)
+        js-line      (-> compiled :compiled :line)
+        js-offset    (-> compiled :compiled :offset)]
+
+    (async/put! tsserver-req-ch (api/open out-file))
+    (async/put! tsserver-req-ch (api/definition out-file js-line js-offset))))
+
+(defn handle-quick-info
+  [tsserver-req-ch req]
+  (let [file         (-> req :arguments :file io/file)
+        loc          [(-> req :arguments :line)
+                      (-> req :arguments :offset)]
+        form         [(es6-import)
+                      (es6-symbol {:loc     loc
+                                   :cursor? true})]
+        compiled     (compiler/compile file form)
+        project-root (util/project-root file)
+        out-file     (util/spit-src project-root compiled)
+        js-line      (-> compiled :compiled :line)
+        js-offset    (-> compiled :compiled :offset)]
+
+    (async/put! tsserver-req-ch (api/open out-file))
+    (async/put! tsserver-req-ch (api/quick-info out-file js-line js-offset))))
+
+(defn handle-completions
+  [tsserver-req-ch req]
+  (let [file         (-> req :arguments :file io/file)
+        loc          [(-> req :arguments :line)
+                      (-> req :arguments :offset)]
+        form         [(es6-import)
+                      (es6-symbol {:loc     loc
+                                   :cursor? true})]
+        compiled     (compiler/compile file form)
+        project-root (util/project-root file)
+        out-file     (util/spit-src project-root compiled)
+        js-line      (-> compiled :compiled :line)
+        js-offset    (-> compiled :compiled :offset)]
+
+    (async/put! tsserver-req-ch (api/open out-file))
+    (async/put! tsserver-req-ch (api/completions out-file js-line js-offset))))
 
 (defmulti
  handle-client-request
@@ -11,7 +65,7 @@
 
 (defmethod handle-client-request :default
   [_ _ _ req]
-  (log/warn "Unsupported request " req))
+  (println "Unsupported request " req))
 
 (defmethod handle-client-request "open"
   [_ tsserver-req-ch _ req]
@@ -19,19 +73,19 @@
 
 (defmethod handle-client-request "completions"
   [_ tsserver-req-ch _ req]
-  (handlers/handle-completions tsserver-req-ch req))
+  (handle-completions tsserver-req-ch req))
 
 (defmethod handle-client-request "quickinfo"
   [_ tsserver-req-ch _ req]
-  (handlers/handle-quick-info tsserver-req-ch req))
+  (handle-quick-info tsserver-req-ch req))
 
 (defmethod handle-client-request "definition"
   [_ tsserver-req-ch _ req]
-  (handlers/handle-definition tsserver-req-ch req))
+  (handle-definition tsserver-req-ch req))
 
 (defn handle-tsserver-response
   [tsserver-req-ch client-resp-ch resp]
-  (log/info "Resp => " resp))
+  (println "Resp => " resp))
 
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
@@ -44,16 +98,31 @@
       (try
         (handle-client-request ctx tsserver-req-ch client-resp-ch req)
         (catch Throwable e
-          (log/errorf e "exception handling request" req))))
+          (println e "exception handling request" req))))
 
      tsserver-resp-ch
      ([resp]
       (try
         (handle-tsserver-response tsserver-req-ch client-resp-ch resp)
         (catch Throwable e
-          (log/errorf e "exception handling response" resp)))))
+          (println e "exception handling response" resp)))))
     (recur)))
 
 (defmethod ig/halt-key! :boonmee/server
+  [_ ch]
+  (some-> ch async/close!))
+
+(comment
+ (:compiled
+  (compiler/compile
+   (io/file "examples/tonal/src/tonal/core.cljs")
+   [(es6-import)
+    (es6-symbol {:loc [4 3] :cursor? true})])))
+
+(defmethod ig/init-key :async/chan
+  [_ _]
+  (async/chan))
+
+(defmethod ig/halt-key! :async/chan
   [_ ch]
   (some-> ch async/close!))

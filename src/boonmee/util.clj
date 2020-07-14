@@ -1,7 +1,24 @@
 (ns boonmee.util
-  (:require [clojure.java.io :as io])
-  (:import (java.io File)
+  (:require [clojure.java.io :as io]
+            [clojure.core.async :as async])
+  (:import (java.io BufferedReader File Closeable)
            (java.security MessageDigest)))
+
+(defn line-handler*
+  [rdr ch]
+  (reify
+    Closeable
+    (close [_]
+      (.close rdr)
+      (async/close! ch))))
+
+(defmacro line-handler
+  [[line-binding reader] & body]
+  `(let [r#  (BufferedReader. ~reader)
+         ch# (async/thread
+              (doseq [~line-binding (line-seq r#)]
+                ~@body))]
+     (line-handler* r# ch#)))
 
 (defn sha256
   [string]

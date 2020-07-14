@@ -1,17 +1,23 @@
-(ns boonmee.core
-  (:require [boonmee.tsserver]
-            [boonmee.server]
-            [boonmee.client]
-            [clojure.core.async :as async]
-            [integrant.core :as ig]))
+(ns boonmee.client.dev
+  (:require [boonmee.server]
+            [boonmee.tsserver.server]
+            [integrant.core :as ig]
+            [clojure.core.async :as async])
+  (:gen-class))
 
-(defmethod ig/init-key :async/chan
-  [_ _]
-  (async/chan))
+(defmethod ig/init-key
+  :boonmee/dev-client
+  [_ {:keys [client-req-ch client-resp-ch]}]
+  {:out (async/go-loop []
+          (when-let [resp (async/<! client-resp-ch)]
+            (println resp)
+            (recur)))
+   :in  client-req-ch})
 
-(defmethod ig/halt-key! :async/chan
-  [_ ch]
-  (some-> ch async/close!))
+(defmethod ig/halt-key!
+  :boonmee/dev-client
+  [_ {:keys [out]}]
+  (some-> out async/close!))
 
 (defn config []
   {[:async/chan :chan/tsserver-resp-ch] {}
@@ -25,7 +31,7 @@
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
                                          :ctx              {}}
-   :boonmee/client                      {:client-req-ch  (ig/ref :chan/client-req-ch)
+   :boonmee/dev-client                  {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)}})
 
 (defonce system
@@ -45,10 +51,14 @@
   (when-let [in (some-> system deref :boonmee/client :in)]
     (async/put! in req)))
 
+(defn -main
+  [& _]
+  (start!))
+
 (comment
  (start!)
  #_(request! {:command   "open"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
+              :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
  (request! {:command   "completions"
             :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
                         :line  6

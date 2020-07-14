@@ -1,4 +1,4 @@
-(ns boonmee.api)
+(ns boonmee.tsserver.api)
 
 (defn tsserver-rpc
   [command arguments]
@@ -13,24 +13,24 @@
 
 (defn completions
   [file line offset]
-  (tsserver-rpc :completionInfo {:file   (str file)
-                                 :line   line
-                                 :offset offset
+  (tsserver-rpc :completionInfo {:file                         (str file)
+                                 :line                         line
+                                 :offset                       offset
                                  :includeExternalModuleExports true
                                  :includeInsertTextCompletions true}))
 
 (defn quick-info
   [file line offset]
-  (tsserver-rpc :quickinfo {:file   (str file)
-                            :line   line
-                            :offset offset
+  (tsserver-rpc :quickinfo {:file                         (str file)
+                            :line                         line
+                            :offset                       offset
                             :includeExternalModuleExports true}))
 
 (defn definition
   [file line offset]
-  (tsserver-rpc :definition {:file   (str file)
-                             :line   line
-                             :offset offset
+  (tsserver-rpc :definition {:file                         (str file)
+                             :line                         line
+                             :offset                       offset
                              :includeExternalModuleExports true}))
 
 (defn reload
