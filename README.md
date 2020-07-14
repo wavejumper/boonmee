@@ -17,41 +17,44 @@ Right now boonmee only works on ClojureScript code (my personal frustration), bu
 
 ## Features
 
-* Unused imports
-* Warn on deprecated methods
-* Docstrings
-* Autocompletion (require, fn calls)
-* Go-to-definition
-* Basic type-checking
+### Editor functionality:
 
-## Usage
+- [x] Quickinfo (documentation, type hints, jsdoc -- deprecation/etc)
+- [x] Completions (require, fn calls)
+- [x] Go-to-definition
+- [x] Auto-install/suggest `@types` packages
 
-## Clojurescript 
+### Linting (WIP):
 
-Note: boonmee analyses `npm-deps` only. If you rely on cljsjs you're out of luck.
+- [ ] Warn on unused imports
+- [ ] Warn on deprecated methods
+- [ ] Warn on no such method
+- [ ] Basic type-checking
 
-## Usage
+## Installation
 
-File:
+
+## ClojureScript 
+
+### NPM deps
+
+Note: boonmee analyses NPM dependencies found in a `package.json` file at your project's root. 
+
+If you rely on cljsjs you're out of luck.
+
+If you are a [shadow-cljs](http://shadow-cljs.org/) user, using boonmee should be a seamless experience.
+
+### @types
+
+boonmee's functionality comes from the [TypeScript](https://www.typescriptlang.org/) compiler. 
+
+That means a `@types/*` package should be installed as a dev dependency, if the library you require is written in vanllia JavaScript (a rarity these days!):
+
 ```
-(ns tonal.core
-  (:require ["@tonaljs/tonal" :refer [Midi]]))
-Midi/ ;; <--- your completions go here
+npm install --save-dev @types/react
 ```
 
-Send some RPC to my new project:
-```
-(request! {:command   "open"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
-```
+## Protocol
 
-Then request some completions:
-```
-(request! {:command   "completions"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs" :line 4 :offset 6}})
-```
 
-gets response:
-````
-{"seq":0,"type":"response","command":"completionInfo","request_seq":6,"success":true,"body":{"isGlobalCompletion":false,"isMemberCompletion":true,"isNewIdentifierLocation":false,"entries":[{"name":"freqToMidi","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"isMidi","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"midiToFreq","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"midiToNoteName","kind":"property","kindModifiers":"declare","sortText":"0"},{"name":"toMidi","kind":"property","kindModifiers":"declare","sortText":"0"}]}}
-```
+## Example RPC
