@@ -1,9 +1,9 @@
 (ns boonmee.client.dev
   (:require [boonmee.server]
             [boonmee.tsserver.server]
+            [boonmee.logging :as log]
             [integrant.core :as ig]
-            [clojure.core.async :as async]
-            [taoensso.timbre :as timbre])
+            [clojure.core.async :as async])
   (:gen-class))
 
 (defmethod ig/init-key
@@ -11,7 +11,7 @@
   [_ {:keys [client-req-ch client-resp-ch]}]
   {:out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
-            (timbre/info resp)
+            (log/info resp)
             (recur)))
    :in  client-req-ch})
 
@@ -33,7 +33,8 @@
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
                                          :ctx              {}}
    :boonmee/dev-client                  {:client-req-ch  (ig/ref :chan/client-req-ch)
-                                         :client-resp-ch (ig/ref :chan/client-resp-ch)}})
+                                         :client-resp-ch (ig/ref :chan/client-resp-ch)}
+   :logger/stdout-logger                {}})
 
 (defonce system
   (atom nil))

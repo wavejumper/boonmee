@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Adapted from https://github.com/borkdude/clj-kondo/blob/master/script/compile
 
 if [ -z "$GRAALVM_HOME" ]; then

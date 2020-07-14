@@ -6,7 +6,7 @@
             [boonmee.compiler.core :as compiler]
             [boonmee.compiler.dsl :refer [es6-import es6-symbol]]
             [boonmee.util :as util]
-            [taoensso.timbre :as timbre]))
+            [boonmee.logging :as log]))
 
 (defn handle-definition
   [tsserver-req-ch req]
@@ -66,7 +66,7 @@
 
 (defmethod handle-client-request :default
   [_ _ _ req]
-  (timbre/warnf "Unsupported client request: %s" req))
+  (log/warnf "Unsupported client request: %s" req))
 
 (defmethod handle-client-request "open"
   [_ tsserver-req-ch _ req]
@@ -90,7 +90,7 @@
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
              client-resp-ch client-req-ch ctx]}]
-  ;; TODO: close-ch, threadpool etc
+  ;; TODO: close-ch, threadpool? etc
   (async/go-loop []
     (async/alt!
      client-req-ch
@@ -98,14 +98,14 @@
       (try
         (handle-client-request ctx tsserver-req-ch client-resp-ch req)
         (catch Throwable e
-          (timbre/errorf e "Exception handling client request: %s" req))))
+          (log/errorf e "Exception handling client request: %s" req))))
 
      tsserver-resp-ch
      ([resp]
       (try
         (handle-tsserver-response tsserver-req-ch client-resp-ch resp)
         (catch Throwable e
-          (timbre/errorf e "Exception handling tsserver response: %s" resp)))))
+          (log/errorf e "Exception handling tsserver response: %s" resp)))))
     (recur)))
 
 (defmethod ig/halt-key! :boonmee/server

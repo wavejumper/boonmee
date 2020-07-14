@@ -14,7 +14,6 @@
   },
   {
     "name": "java.lang.System",
-    "methods": [{"name": "nanoTime"}
-    ]
+    "methods": [{"name": "nanoTime"}]
   }
 ]

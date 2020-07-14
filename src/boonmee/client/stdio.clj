@@ -1,13 +1,11 @@
 (ns boonmee.client.stdio
   (:require [boonmee.server]
             [boonmee.tsserver.server]
+            [boonmee.logging :as log]
             [boonmee.util :as util]
-            [clojure.java.io :as io]
             [clojure.core.async :as async]
-            [cheshire.core :as cheshire]
-            [integrant.core :as ig]
-            [taoensso.timbre :as timbre]
-            [taoensso.timbre.appenders.core :as appenders])
+            [clojure.data.json :as json]
+            [integrant.core :as ig])
   (:gen-class))
 
 (defn init-stdio-client!
@@ -19,26 +17,19 @@
   (init-stdio-client! client-req-ch)
   {:in  (util/line-handler [line in]
           (try
-            (let [req (cheshire/parse-string-strict line)]
+            (let [req (json/read-str line)]
               (async/put! client-req-ch req))
             (catch Throwable e
-              (timbre/errorf e "Failed to parse req %s" line))))
+              (log/errorf e "Failed to parse req %s" line))))
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
-            (print-dup (cheshire/generate-string resp) out)
+            (print-dup (json/read-str resp) out)
             (recur)))})
 
 (defmethod ig/halt-key!
   :boonmee/stdio-client
   [_ {:keys [in]}]
   (some-> in async/close!))
-
-(defmethod ig/init-key :boonmee/stdio-logger
-  [_ {:keys [fname enabled? level]}]
-  (timbre/merge-config!
-   {:level     level
-    :appenders {:spit    (appenders/spit-appender {:fname fname :enabled? enabled?})
-                :println {:enabled? false}}}))
 
 (defn config []
   {[:async/chan :chan/tsserver-resp-ch] {}
@@ -56,9 +47,9 @@
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
                                          :in             *in*
                                          :out            *out*}
-   :boonmee/stdio-logger                {:fname    (io/file (System/getProperty "java.io.tmpdir") "boonmee.log")
-                                         :enabled? true
-                                         :level    :info}})
+   :logger/file-logger                  {:fname "boonmee.log"}})
 
 (defn -main [& _]
-  (ig/init (config)))
+  (ig/init (config))
+  (println "Foo")
+  (Thread/sleep 2000))
