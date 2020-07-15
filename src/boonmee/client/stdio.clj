@@ -5,8 +5,7 @@
             [boonmee.util :as util]
             [clojure.core.async :as async]
             [clojure.data.json :as json]
-            [integrant.core :as ig])
-  (:gen-class))
+            [integrant.core :as ig]))
 
 (defn init-stdio-client!
   [client-req-ch])
@@ -31,7 +30,8 @@
   [_ {:keys [in]}]
   (some-> in async/close!))
 
-(defn config []
+(defn config
+  [_]
   {[:async/chan :chan/tsserver-resp-ch] {}
    [:async/chan :chan/tsserver-req-ch]  {}
    [:async/chan :chan/client-resp-ch]   {}
@@ -48,8 +48,3 @@
                                          :in             *in*
                                          :out            *out*}
    :logger/file-logger                  {:fname "boonmee.log"}})
-
-(defn -main [& _]
-  (ig/init (config))
-  (println "Foo")
-  (Thread/sleep 2000))
