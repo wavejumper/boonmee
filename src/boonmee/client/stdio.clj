@@ -16,13 +16,13 @@
   (init-stdio-client! client-req-ch)
   {:in  (util/line-handler [line in]
           (try
-            (let [req (json/read-str line)]
+            (let [req (json/read-str line :key-fn keyword)]
               (async/put! client-req-ch req))
             (catch Throwable e
               (log/errorf e "Failed to parse req %s" line))))
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
-            (print-dup (json/read-str resp) out)
+            (println (json/write-str resp))
             (recur)))})
 
 (defmethod ig/halt-key!

@@ -32,6 +32,7 @@
           req-ch  (get sys [:async/chan :chan/client-req-ch])
           resp-ch (get sys [:async/chan :chan/client-resp-ch])]
       (assoc this :system sys :req-ch req-ch :resp-ch resp-ch)))
+
   (stop [this]
     (some-> this :sys ig/halt!)
     (dissoc this :system :req-ch :resp-ch)))

@@ -1,6 +1,7 @@
 (ns dev
   (:require [boonmee.client.clojure :as boonmee]
-            [clojure.core.async :as async]))
+            [clojure.core.async :as async]
+            [clojure.data.json :as json]))
 
 (defonce system
   (atom (boonmee/map->ClojureClient {:config (boonmee/config {})})))
@@ -21,10 +22,14 @@
  (start!)
  #_(request! {:command   "open"
               :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"}})
- (request! {:command   "completions"
-            :arguments {:file "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
-                        :line  6
-                        :offset 6}}))
+ (request! {:command    "completions"
+            :type       "request"
+            :request-id "12345"
+            :arguments  {:file   "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
+                         :line   6
+                         :offset 6}})
+
+ (async/<!! (:resp-ch @system)))
 
 (comment
  (:compiled

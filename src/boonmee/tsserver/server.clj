@@ -14,7 +14,6 @@
   (let [tsserver (apply sh/proc proc proc-args)]
     {:tsserver tsserver
      :out      (util/line-handler [out (InputStreamReader. ^InputStream (:out tsserver) StandardCharsets/UTF_8)]
-                 (log/debugf "Response from tsserver: %s" out)
                  (async/put! tsserver-resp-ch out))
      :err      (util/line-handler [err (InputStreamReader. ^InputStream (:err tsserver) StandardCharsets/UTF_8)]
                  (log/errorf "Error from tsserver: %s" err))

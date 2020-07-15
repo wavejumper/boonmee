@@ -69,6 +69,7 @@ If you would like to use boonmee directly from a Clojure project, bring in the f
 ```
 
 Note: when calling from Clojure directly, you will need `tsserver` on your `$PATH`:
+
 ```
 npm install -g typescript
 ```

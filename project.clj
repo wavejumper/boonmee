@@ -8,7 +8,8 @@
                  [wavejumper/conch "0.9.3"]
                  [rewrite-clj "0.6.1"]
                  [integrant "0.8.0"]
-                 [org.clojure/tools.cli "1.0.194"]]
+                 [org.clojure/tools.cli "1.0.194"]
+                 [expound "0.8.5"]]
 
   :profiles {:dev          {:test-paths   ["test"]
                             :repl-options {:init-ns dev}}
