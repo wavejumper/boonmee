@@ -46,9 +46,11 @@ Refer to the CI job on how to compile boonmee as a native image from source.
 
 ## Usage
 
-Interaction with boonmee happens either via stdio or TCP
+Interaction with boonmee happens either via stdio (default) or TCP
 
 `./boonmee --client=stdio`
+
+`./boonmee --client=tcp --port=9000`
 
 Refer to the [Example RPC](#example-rpc) section for some examples of client requests.
 
