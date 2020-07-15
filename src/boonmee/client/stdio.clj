@@ -12,9 +12,10 @@
 
 (defmethod ig/init-key
   :boonmee/stdio-client
-  [_ {:keys [client-req-ch client-resp-ch in out]}]
+  [_ {:keys [client-req-ch client-resp-ch]}]
   (init-stdio-client! client-req-ch)
-  {:in  (util/line-handler [line in]
+  ;; TODO: maybe make *in* and *out* arguments to ig component???
+  {:in  (util/line-handler [line *in*]
           (try
             (let [req (json/read-str line :key-fn keyword)]
               (async/put! client-req-ch req))
@@ -44,7 +45,5 @@
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
                                          :ctx              {}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
-                                         :client-resp-ch (ig/ref :chan/client-resp-ch)
-                                         :in             *in*
-                                         :out            *out*}
+                                         :client-resp-ch (ig/ref :chan/client-resp-ch)}
    :logger/file-logger                  {:fname "boonmee.log"}})
