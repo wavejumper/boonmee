@@ -20,7 +20,7 @@
         (println error))
       (System/exit 1))
 
-    (let [config (case (-> :options :client)
+    (let [config (case (-> opts :options :client)
                    "stdio" (client.stdio/config opts)
                    "tcp" {})]
       (try

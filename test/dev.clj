@@ -1,5 +1,6 @@
 (ns dev
-  (:require [boonmee.client.clojure :as boonmee]))
+  (:require [boonmee.client.clojure :as boonmee]
+            [clojure.core.async :as async]))
 
 (defonce system
   (atom (boonmee/map->ClojureClient {:config (boonmee/config {})})))
@@ -10,6 +11,9 @@
 (defn stop! []
   (swap! system boonmee/stop))
 
+(defn request!
+  [msg]
+  (async/put! (:req-ch @system) msg))
 
 ;; Scratchpad...
 

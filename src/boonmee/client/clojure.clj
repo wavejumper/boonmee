@@ -28,7 +28,7 @@
   IClojureClient
   (start [this]
     (let [sys     (ig/init config)
-          req-ch  (get sys [:async/chan :chan/client-resp-ch])
+          req-ch  (get sys [:async/chan :chan/client-req-ch])
           resp-ch (get sys [:async/chan :chan/client-resp-ch])]
       (assoc this :system sys :req-ch req-ch :resp-ch resp-ch)))
   (stop [this]
