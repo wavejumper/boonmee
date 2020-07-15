@@ -20,7 +20,11 @@
             (let [req (json/read-str line :key-fn keyword)]
               (async/put! client-req-ch req))
             (catch Throwable e
-              (log/errorf e "Failed to parse req %s" line))))
+              (log/errorf e "Failed to parse req %s" line)
+              (async/put! client-resp-ch {:command "error"
+                                          :type    "response"
+                                          :success false
+                                          :message (.getMessage e)}))))
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
             (println (json/write-str resp))

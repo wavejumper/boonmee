@@ -29,6 +29,13 @@
                          :line   6
                          :offset 6}})
 
+ (println (json/write-str  {:command    "completions"
+                            :type       "request"
+                            :request-id "12345"
+                            :arguments  {:file   "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
+                                         :line   6
+                                         :offset 6}}))
+
  (async/<!! (:resp-ch @system)))
 
 (comment
