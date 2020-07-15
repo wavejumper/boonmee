@@ -5,10 +5,10 @@
   :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                  [org.clojure/core.async "1.2.603"]
                  [org.clojure/data.json "1.0.0"]
+                 [org.clojure/tools.cli "1.0.194"]
                  [wavejumper/conch "0.9.3"]
                  [rewrite-clj "0.6.1"]
                  [integrant "0.8.0"]
-                 [org.clojure/tools.cli "1.0.194"]
                  [expound "0.8.5"]]
 
   :profiles {:dev          {:test-paths   ["test"]

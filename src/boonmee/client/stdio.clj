@@ -5,29 +5,36 @@
             [boonmee.util :as util]
             [clojure.core.async :as async]
             [clojure.data.json :as json]
-            [integrant.core :as ig]))
+            [integrant.core :as ig])
+  (:import (java.io PrintWriter)))
 
 (defn init-stdio-client!
   [client-req-ch])
 
 (defmethod ig/init-key
   :boonmee/stdio-client
-  [_ {:keys [client-req-ch client-resp-ch]}]
+  [_ {:keys [client-req-ch client-resp-ch in out]}]
   (init-stdio-client! client-req-ch)
-  ;; TODO: maybe make *in* and *out* arguments to ig component???
-  {:in  (util/line-handler [line *in*]
+  {:in  (util/line-handler [line in]
           (try
             (let [req (json/read-str line :key-fn keyword)]
               (async/put! client-req-ch req))
             (catch Throwable e
-              (log/errorf e "Failed to parse req %s" line)
+              (log/errorf e "Failed to parse client req %s" line)
               (async/put! client-resp-ch {:command "error"
                                           :type    "response"
                                           :success false
                                           :message (.getMessage e)}))))
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
-            (println (json/write-str resp))
+            (try
+              (.write ^PrintWriter out (str (json/write-str resp) \newline))
+              (catch Throwable e
+                (log/errorf e "Failed to write client resp %s" resp)
+                (async/put! client-resp-ch {:command "error"
+                                            :type    "response"
+                                            :success false
+                                            :message (.getMessage e)})))
             (recur)))})
 
 (defmethod ig/halt-key!
@@ -49,5 +56,7 @@
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
                                          :ctx              {}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
-                                         :client-resp-ch (ig/ref :chan/client-resp-ch)}
+                                         :client-resp-ch (ig/ref :chan/client-resp-ch)
+                                         :in             *in*
+                                         :out            *out*}
    :logger/file-logger                  {:fname "boonmee.log"}})

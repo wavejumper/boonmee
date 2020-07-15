@@ -74,45 +74,45 @@
 
 (defmulti
  handle-client-request
- (fn [_state _ctx req]
+ (fn [_state req]
    (:command req)))
 
 (defmethod handle-client-request :default
-  [state _ req]
+  [state req]
   (log/warnf "Unsupported client request: %s" req)
   {:state state})
 
 (defmethod handle-client-request "open"
-  [state _ req]
+  [state req]
   #_(handlers/handle-open tsserver-req-ch req)
   {:state state})
 
 (defmethod handle-client-request "completions"
-  [state _ req]
+  [state req]
   (handle-completions state req))
 
 (defmethod handle-client-request "quickinfo"
-  [state _ req]
+  [state req]
   {:tsserver/requests (handle-quick-info req)
    :state             state})
 
 (defmethod handle-client-request "definition"
-  [state _ req]
+  [state req]
   {:tsserver/requests (handle-definition req)
    :state             state})
 
 (defmulti
  handle-tsserver-response
- (fn [_state _ctx resp]
+ (fn [_state resp]
    (:command resp)))
 
 (defmethod handle-tsserver-response :default
-  [state _ resp]
+  [state resp]
   (log/warnf "Unsupported tsserver response: %s" resp)
   {:state state})
 
 (defmethod handle-tsserver-response "completionInfo"
-  [state _ resp]
+  [state resp]
   (log/info resp)
   (let [seq-id     (get resp "request_seq")
         request-id (get-in state [:completions seq-id])]
@@ -128,21 +128,23 @@
     nil
     (json/read-str resp :key-fn keyword)))
 
-(defn initial-state []
-  {:seq (AtomicInteger. 0)})
+(defn initial-state
+  [ctx]
+  {:seq (AtomicInteger. 0)
+   :ctx ctx})
 
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
              client-resp-ch client-req-ch ctx]}]
   ;; TODO: close-ch, threadpool? etc
-  (async/go-loop [state (initial-state)]
+  (async/go-loop [state (initial-state ctx)]
     (let [{:keys [client/responses tsserver/requests state]}
           (async/alt!
            client-req-ch
            ([req]
             (try
               (if (s/valid? :client/request req)
-                (handle-client-request state ctx req)
+                (handle-client-request state req)
                 {:state            state
                  :client/responses [{:command "error"
                                      :type    "response"
@@ -160,7 +162,7 @@
            ([resp]
             (try
               (when-let [parsed-resp (parse-tsserver-resp resp)]
-                (handle-tsserver-response state ctx parsed-resp))
+                (handle-tsserver-response state parsed-resp))
               (catch Throwable e
                 (log/errorf e "Exception handling tsserver response: %s" resp)
                 {:state            state

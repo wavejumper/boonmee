@@ -1,5 +1,6 @@
 (ns boonmee.cli
   (:require [boonmee.client.stdio :as client.stdio]
+            [boonmee.client.tcp :as client.tcp]
             [clojure.tools.cli :as tools.cli]
             [integrant.core :as ig])
   (:import (java.util.concurrent CountDownLatch))
@@ -22,7 +23,7 @@
 
     (let [config (case (-> opts :options :client)
                    "stdio" (client.stdio/config opts)
-                   "tcp" {})]
+                   "tcp"   (client.tcp/config opts))]
       (try
         (let [system (ig/init config)]
           (.addShutdownHook
@@ -34,8 +35,7 @@
                                     (.printStackTrace e)))
                                 (.countDown latch)))))
         (.await latch)
+        (System/exit 0)
         (catch Throwable e
           (.printStackTrace e)
-          (System/exit 1)))
-
-      (System/exit 0))))
+          (System/exit 1))))))
