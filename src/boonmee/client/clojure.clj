@@ -2,16 +2,17 @@
   (:require [boonmee.server]
             [boonmee.tsserver.server]
             [boonmee.logging]
-            [integrant.core :as ig])
-  (:gen-class))
+            [integrant.core :as ig]))
 
 (defn config
-  [_]
+  [overrides]
   {[:async/chan :chan/tsserver-resp-ch] {}
    [:async/chan :chan/tsserver-req-ch]  {}
    [:async/chan :chan/client-resp-ch]   {}
    [:async/chan :chan/client-req-ch]    {}
-   :boonmee/tsserver                    {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
+   :boonmee/tsserver                    {:proc             (get overrides :tsserver/proc "tsserver")
+                                         :proc-args        []
+                                         :tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)}
    :boonmee/server                      {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)

@@ -9,8 +9,9 @@
            (java.nio.charset StandardCharsets)))
 
 (defmethod ig/init-key :boonmee/tsserver
-  [_ {:keys [tsserver-resp-ch tsserver-req-ch]}]
-  (let [tsserver (sh/proc "tsserver")]
+  [_ {:keys [tsserver-resp-ch tsserver-req-ch proc proc-args]
+      :or   {proc "tsserver"}}]
+  (let [tsserver (apply sh/proc proc proc-args)]
     {:tsserver tsserver
      :out      (util/line-handler [out (InputStreamReader. ^InputStream (:out tsserver) StandardCharsets/UTF_8)]
                  (log/debugf "Response from tsserver: %s" out)

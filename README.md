@@ -1,6 +1,6 @@
 # boonmee
 
-boonmee is a language server for Clojure that focuses on features relating to host interop suited for IDEs/editor plugins.
+boonmee is a language server for Clojure that focuses on features relating to host interop.
 
 It is an attempt to bring first-class 'intellisense' to ClojureScript projects.
 
