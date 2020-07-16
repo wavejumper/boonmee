@@ -6,10 +6,14 @@
             [clojure.core.async :as async]
             [clojure.data.json :as json]
             [integrant.core :as ig])
-  (:import (java.io PrintWriter)))
+  (:import (java.io InputStream PrintWriter InputStreamReader)
+           (java.nio.charset StandardCharsets)))
 
 (defn init-stdio-client!
-  [client-req-ch])
+  [client-req-ch]
+  (async/put! client-req-ch {:command    "info"
+                             :type       "request"
+                             :request-id "0"}))
 
 (defmethod ig/init-key
   :boonmee/stdio-client
@@ -28,7 +32,7 @@
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
             (try
-              (.write ^PrintWriter out (str (json/write-str resp) \newline))
+              (.println ^PrintWriter out (json/write-str resp))
               (catch Throwable e
                 (log/errorf e "Failed to write client resp %s" resp)
                 (async/put! client-resp-ch {:command "error"
@@ -41,6 +45,14 @@
   :boonmee/stdio-client
   [_ {:keys [in]}]
   (some-> in async/close!))
+
+(defmethod ig/init-key :boonmee/stdio-reader
+  [_ {:keys [in]}]
+  (InputStreamReader. ^InputStream in StandardCharsets/UTF_8))
+
+(defmethod ig/halt-key! :boonmee/stdio-reader
+  [_ {:keys [reader]}]
+  (.close reader))
 
 (defn config
   [_]
@@ -57,6 +69,7 @@
                                          :ctx              {}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
-                                         :in             *in*
-                                         :out            *out*}
+                                         :in             (ig/ref :boonmee/stdio-reader)
+                                         :out            System/out}
+   :boonmee/stdio-reader                {:in System/in}
    :logger/file-logger                  {:fname "boonmee.log"}})

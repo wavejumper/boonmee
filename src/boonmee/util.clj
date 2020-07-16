@@ -40,5 +40,5 @@
           out-file (io/file out-dir file-name)]
       (io/make-parents out-dir)
       (io/make-parents out-file)
-      (spit (str out-file) (:js-out compiled))
+      (spit out-file (:js-out compiled))
       out-file)))

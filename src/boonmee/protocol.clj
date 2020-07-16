@@ -11,6 +11,15 @@
 (s/def :client.request/request-id string?)
 (s/def :client.request/type #{"request"})
 
+;;; Info
+
+(s/def :client.request.info/command #{"info"})
+
+(defmethod client-request "info" [_]
+  (s/keys :req-un [:client.request/request-id
+                   :client.request/type
+                   :client.request.info/command]))
+
 ;;; Completions request
 
 (s/def :client.request.completions/command #{"completions"})
@@ -26,7 +35,6 @@
 (defmethod client-request "completions" [_]
   (s/keys :req-un [:client.request/request-id
                    :client.request/type
-                   :client.request/request-id
                    :client.request.completions/command
                    :client.request.completions/arguments]))
 
@@ -40,6 +48,27 @@
 (s/def :client.response/type #{"response"})
 (s/def :client.response/success boolean?)
 (s/def :client.response/message string?)
+
+;;; Info
+
+(s/def :client.response.info/command #{"info"})
+
+(s/def :client.response.info.data/init nat-int?)
+(s/def :client.response.info.data/seq nat-int?)
+(s/def :client.response.info.data/version string?)
+
+(s/def :client.response.info/data
+  (s/keys :req-un [:client.response.info.data/init
+                   :client.response.info.data/seq
+                   :client.response.info.data/version]))
+
+(defmethod client-response "info" [_]
+  (s/keys :req-un [:client.response/type
+                   :client.response/success
+                   :client.response/message
+                   :client.request/request-id
+                   :client.response.info/command
+                   :client.response.info/data]))
 
 ;;; Error response
 

@@ -10,27 +10,39 @@
   ;; An option with a required argument
   [["-c" "--client client" "Specify client"
     :default "stdio"
-    :validate [#{"stdio" "tcp"} "Must be either #{stdio tcp}"]]])
+    :validate [#{"stdio" "tcp"} "Must be either #{stdio tcp}"]]
+
+   ["-p" "--port PORT" "Port number"
+    :default 9457
+    :parse-fn #(Integer/parseInt %)
+    :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
+
+   ["-h" "--help"]])
 
 (defn -main
   [& args]
   (let [opts  (tools.cli/parse-opts args cli-options)
         latch (CountDownLatch. 1)]
+
     (when-let [errors (seq (:errors opts))]
       (doseq [error errors]
         (println error))
       (System/exit 1))
 
+    (when (-> opts :options :help)
+      (println (:summary opts))
+      (System/exit 0))
+
     (let [config (case (-> opts :options :client)
-                   "stdio" (client.stdio/config opts)
-                   "tcp"   (client.tcp/config opts))]
+                   "stdio" (client.stdio/config (:options opts))
+                   "tcp"   (client.tcp/config (:options opts)))]
       (try
         (let [system (ig/init config)]
           (.addShutdownHook
            (Runtime/getRuntime)
            (Thread. ^Runnable (fn []
                                 (try
-                                  (ig/halt-key! system)
+                                  (ig/halt! system)
                                   (catch Throwable e
                                     (.printStackTrace e)))
                                 (.countDown latch)))))

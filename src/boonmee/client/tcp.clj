@@ -1,11 +1,11 @@
 (ns boonmee.client.tcp
   (:require [boonmee.client.stdio]
             [integrant.core :as ig])
-  (:import (java.net Socket)
+  (:import (java.net ServerSocket Socket)
            (java.io InputStreamReader PrintWriter)))
 
 (defn config
-  [_]
+  [opts]
   {[:async/chan :chan/tsserver-resp-ch] {}
    [:async/chan :chan/tsserver-req-ch]  {}
    [:async/chan :chan/client-resp-ch]   {}
@@ -21,26 +21,29 @@
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
                                          :in             (ig/ref :tcp/socket-reader)
                                          :out            (ig/ref :tcp/socket-writer)}
-   :tcp/socket                          {:port 0
-                                         :host "localhost"}
+   :tcp/socket                          {:port (:port opts)}
    :tcp/socket-reader                   {:socket (ig/ref :tcp/socket)}
    :tcp/socket-writer                   {:socket (ig/ref :tcp/socket)}
    :logger/stdout-logger                {}})
 
 (defmethod ig/init-key
   :tcp/socket
-  [_ {:keys [port host]}]
-  (Socket. ^String host ^int port))
+  [_ {:keys [port]}]
+  (println "boonmee listening on " port)
+  (let [server (ServerSocket. ^int port)]
+    {:server server
+     :client (.accept server)}))
 
 (defmethod ig/halt-key!
   :tcp/socket
-  [_ socket]
-  (.close ^Socket socket))
+  [_ {:keys [server client]}]
+  (.close ^Socket client)
+  (.close ^ServerSocket server))
 
 (defmethod ig/init-key
   :tcp/socket-reader
-  [_ {:keys [^Socket socket]}]
-  (InputStreamReader. (.getInputStream socket)))
+  [_ {:keys [socket]}]
+  (InputStreamReader. (.getInputStream ^Socket (:client socket))))
 
 (defmethod ig/halt-key!
   :tcp/socket-reader
@@ -49,8 +52,8 @@
 
 (defmethod ig/init-key
   :tcp/socket-writer
-  [_ {:keys [^Socket socket]}]
-  (PrintWriter. (.getOutputStream socket) true))
+  [_ {:keys [socket]}]
+  (PrintWriter. (.getOutputStream ^Socket (:client socket)) true))
 
 (defmethod ig/halt-key!
   :tcp/socket-writer

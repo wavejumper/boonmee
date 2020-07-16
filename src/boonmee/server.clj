@@ -82,6 +82,18 @@
   (log/warnf "Unsupported client request: %s" req)
   {:state state})
 
+(defmethod handle-client-request "info"
+  [state req]
+  {:state            state
+   :client/responses [{:type       "response"
+                       :command    "info"
+                       :request-id (:request-id req)
+                       :success    true
+                       :data       {:seq     (let [seq (:seq state)]
+                                               (.get ^AtomicInteger seq))
+                                    :init    (:init state)
+                                    :version (:version state)}}]})
+
 (defmethod handle-client-request "open"
   [state req]
   #_(handlers/handle-open tsserver-req-ch req)
@@ -130,8 +142,10 @@
 
 (defn initial-state
   [ctx]
-  {:seq (AtomicInteger. 0)
-   :ctx ctx})
+  {:seq     (AtomicInteger. 0)
+   :ctx     ctx
+   :init    (System/currentTimeMillis)
+   :version "1.0.0"})
 
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
@@ -172,6 +186,8 @@
                                      :message (.getMessage e)}]}))))]
 
       (doseq [resp responses]
+        ;; Only throw assertion errors on responses if `check-asserts?` is enabled
+        #_(s/assert :client/response resp)
         (async/put! client-resp-ch resp))
 
       (doseq [req requests]
