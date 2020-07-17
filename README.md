@@ -127,7 +127,7 @@ Our examples will be querying at loc `[4 8]`
 {}
 ```
 
-### Completions
+### Quickinfo
 
 #### Request
 
