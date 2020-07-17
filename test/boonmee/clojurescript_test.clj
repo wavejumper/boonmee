@@ -6,11 +6,11 @@
 (defn compile-ns*
   [require-form]
   (->> require-form
-       (ana/analyse-es6-require)
+       (ana/analyse-npm-require)
        (compiler/compile-es6-require)))
 
 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#npm
-(deftest analyze-es6-require
+(deftest analyze-npm-require
   (is (= (compile-ns* '["module-name" :default defaultExport])
          "import defaultExport from 'module-name';"))
 
@@ -44,9 +44,9 @@
     (react/useState "xxx")))
 
 (deftest analyse-ctx
-  (is (= (select-keys (ana/analyse-string (pr-str form1)) [:es6-deps :es6-syms])
-         {:es6-deps '({:package-name "react" :args {:as react}})
-          :es6-syms #{'react}})))
+  (is (= (select-keys (ana/analyse-string (pr-str form1)) [:npm-deps :npm-syms])
+         {:npm-deps '({:package-name "react" :args {:as react}})
+          :npm-syms #{'react}})))
 
 (deftest deduce-js-interop
   (testing ":require ['react' ..."

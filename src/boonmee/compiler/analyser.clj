@@ -6,12 +6,12 @@
   (:import (clojure.lang Symbol PersistentList)
            (java.io File)))
 
-(defn analyse-es6-require
+(defn analyse-npm-require
   [[package-name & args]]
   {:package-name package-name
    :args         (apply hash-map args)})
 
-(defn es6-deps
+(defn npm-deps
   [data]
   (when-let [ns (-> (z/find-value data z/next 'ns)
                     z/up
@@ -23,9 +23,9 @@
                 (first)
                 (rest)
                 (filter (comp string? first))
-                (map analyse-es6-require))}))
+                (map analyse-npm-require))}))
 
-(defn es6-syms
+(defn npm-syms
   [deps]
   (mapcat (fn [{:keys [args]}]
             (cond-> #{}
@@ -40,9 +40,9 @@
 
 (defn analyse
   [zip]
-  (let [{:keys [ns deps]} (es6-deps zip)]
-    {:es6-deps deps
-     :es6-syms (set (es6-syms deps))
+  (let [{:keys [ns deps]} (npm-deps zip)]
+    {:npm-deps deps
+     :npm-syms (set (npm-syms deps))
      :ns       ns
      :zip      zip}))
 
@@ -87,12 +87,12 @@
   (interop [this ctx zip]
     (cond
       (namespace this)
-      (when-let [sym ((:es6-syms ctx) (-> this namespace symbol))]
+      (when-let [sym ((:npm-syms ctx) (-> this namespace symbol))]
         {:fragment (-> this name symbol)
          :sym      sym
          :usage    :method})
 
-      (contains? (:es6-syms ctx) this)
+      (contains? (:npm-syms ctx) this)
       (let [[fragment usage]
             (let [prev-sexpr (-> zip z/prev z/sexpr)]
               (when (symbol? prev-sexpr)
@@ -127,8 +127,8 @@
           prev-sexpr    (z/sexpr (z/prev zip))
           sym           (when (symbol? prev-sexpr)
                           (if (namespace prev-sexpr)
-                            ((:es6-syms ctx) (-> this namespace symbol))
-                            ((:es6-syms ctx) prev-sexpr)))]
+                            ((:npm-syms ctx) (-> this namespace symbol))
+                            ((:npm-syms ctx) prev-sexpr)))]
       (cond
         (and (or aset-call? aget-call?) sym)
         {:fragment this

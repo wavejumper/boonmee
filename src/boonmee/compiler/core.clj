@@ -48,8 +48,8 @@
     (str "import " (import-statements->str (import-statements args)) " from '" package-name "';")))
 
 (defn compile-ns
-  [es6-deps]
-  (keep compile-es6-require es6-deps))
+  [npm-deps]
+  (keep compile-es6-require npm-deps))
 
 (defprotocol INode
   (-compile [this ctx]))
@@ -57,7 +57,7 @@
 (defrecord Es6Import []
   INode
   (-compile [_ ctx]
-    (compile-ns (:es6-deps ctx))))
+    (compile-ns (:npm-deps ctx))))
 
 (defn es6-import
   []
