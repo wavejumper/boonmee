@@ -125,7 +125,7 @@ Our examples will be querying at loc `[4 8]`
 
 ```javascript
 {}
-``
+```
 
 ### Completions
 
@@ -139,7 +139,7 @@ Our examples will be querying at loc `[4 8]`
 
 ```javascript
 {}
-``
+```
 
 ### Definitions
 
@@ -153,4 +153,4 @@ Our examples will be querying at loc `[4 8]`
 
 ```javascript
 {}
-``
+```
