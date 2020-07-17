@@ -16,3 +16,4 @@ node_modules/
 *.iml
 boonmee
 boonmee.log
+**.DS_Store

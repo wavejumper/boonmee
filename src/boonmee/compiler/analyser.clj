@@ -1,6 +1,8 @@
 (ns boonmee.compiler.analyser
   (:require [rewrite-clj.zip :as z]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.core.specs.alpha]
+            [clojure.spec.alpha :as s])
   (:import (clojure.lang Symbol PersistentList)
            (java.io File)))
 
@@ -37,13 +39,20 @@
           deps))
 
 (defn analyse
-  [^File f]
-  (let [zip (z/of-file f {:track-position? true})
-        {:keys [ns deps]} (es6-deps zip)]
+  [zip]
+  (let [{:keys [ns deps]} (es6-deps zip)]
     {:es6-deps deps
      :es6-syms (set (es6-syms deps))
      :ns       ns
      :zip      zip}))
+
+(defn analyse-file
+  [^File f]
+  (analyse (z/of-file f {:track-position? true})))
+
+(defn analyse-string
+  [s]
+  (analyse (z/of-string s {:track-position? true})))
 
 (defn location
   [{:keys [zip]} [line offset]]
@@ -61,7 +70,7 @@
         (and on-line? (>= curr-offset offset))
         zip
 
-        (and on-line? (> (-> next-zip z/next z/position second) line))
+        (and on-line? (> (-> next-zip z/next z/position first) line))
         next-zip
 
         on-line?
@@ -78,26 +87,43 @@
   (interop [this ctx zip]
     (cond
       (namespace this)
-      {:fragment (-> this name symbol)
-       :sym      ((:es6-syms ctx) (-> this namespace symbol))}
+      (when-let [sym ((:es6-syms ctx) (-> this namespace symbol))]
+        {:fragment (-> this name symbol)
+         :sym      sym
+         :usage    :method})
 
       (contains? (:es6-syms ctx) this)
-      {:fragment nil
-       :sym      this}
+      (let [[fragment usage]
+            (let [prev-sexpr (-> zip z/prev z/sexpr)]
+              (when (symbol? prev-sexpr)
+                (if (#{'aget 'aset} prev-sexpr)
+                  [(-> zip z/next z/sexpr) (if (= 'aget prev-sexpr) :property :method)]
+                  [prev-sexpr :method])))]
+        {:fragment fragment
+         :sym      this
+         :usage    (or usage :unknown)})
 
       (str/starts-with? (str this) ".")
-      (let [next-zip (z/next zip)
+      (let [next-zip   (z/next zip)
             next-sexpr (z/sexpr next-zip)]
-        {:fragment this
-         :sym      (interop next-sexpr ctx next-zip)})
+        (when-let [sym (interop next-sexpr ctx next-zip)]
+          {:fragment this
+           :sym      sym
+           :usage    (if (str/starts-with? (str this) ".-")
+                       :property
+                       :method)}))))
 
-      (= 'aget this)
-      (do (println "TODO: implement aget")
-          nil)
-
-      (= 'aset this)
-      (do (println "TODO: implement aset")
-          nil)))
+  String
+  (interop [this _ zip]
+    (let [parent (z/sexpr (z/up zip))]
+      (if (and (vector? parent)
+               (s/valid? :clojure.core.specs.alpha/ns-require
+                         ;; I don't want to bring in cljs as a dep :'(
+                         [:require (update parent 0 #(when (string? %) (symbol %)))])
+               (-> parent first string?))
+        {:fragment nil
+         :sym      this
+         :usage    :require})))
 
   PersistentList
   (interop [_ ctx zip]
@@ -107,9 +133,9 @@
 
   Object
   (interop [_ _ _]
-   nil))
+    nil))
 
 (defn deduce-js-interop
   [ctx loc]
   (when-let [zip (location ctx loc)]
-    (some-> zip z/sexpr (interop  ctx zip))))
+    (some-> zip z/sexpr (interop ctx zip))))

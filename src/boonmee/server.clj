@@ -7,8 +7,7 @@
             [clojure.string :as str]
             [expound.alpha :as expound]
             [boonmee.tsserver.api :as api]
-            [boonmee.compiler.core :as compiler]
-            [boonmee.compiler.dsl :refer [es6-import es6-symbol]]
+            [boonmee.compiler.core :as compiler :refer [es6-import es6-symbol]]
             [boonmee.util :as util]
             [boonmee.logging :as log]
             [boonmee.protocol])

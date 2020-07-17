@@ -37,25 +37,35 @@
 
 (defn compile-es6-require
   [{:keys [package-name args]}]
-  (if (empty? args)
+  (cond
+    (nil? package-name)
+    nil
+
+    (empty? args)
     (str "import '" package-name "';")
+
+    :else
     (str "import " (import-statements->str (import-statements args)) " from '" package-name "';")))
 
 (defn compile-ns
   [es6-deps]
-  (map compile-es6-require es6-deps))
+  (keep compile-es6-require es6-deps))
 
-(defprotocol ICompiler
+(defprotocol INode
   (-compile [this ctx]))
 
 (defrecord Es6Import []
-  ICompiler
+  INode
   (-compile [_ ctx]
     (compile-ns (:es6-deps ctx))))
 
+(defn es6-import
+  []
+  (->Es6Import))
+
 (defrecord Es6Sym
   [loc cursor?]
-  ICompiler
+  INode
   (-compile [this ctx]
     (when-let [sym (ana/deduce-js-interop ctx loc)]
       [{:cursor? cursor?
@@ -63,6 +73,10 @@
         :sym     sym
         :sym-ctx this
         :ctx     ctx}])))
+
+(defn es6-symbol
+  [opts]
+  (map->Es6Sym opts))
 
 (defn compile-form
   [ctx form]
@@ -111,7 +125,7 @@
 
 (defn compile
   [^File file form]
-  (let [ctx       (ana/analyse file)
+  (let [ctx       (ana/analyse-file file)
         ext       (last (str/split (.getName file) #"\."))
         compiled  (compile-form ctx form)
         file-name (file-name (:ns ctx) ext (:js-out compiled))]
