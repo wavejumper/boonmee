@@ -101,3 +101,56 @@ npm install --save-dev @types/react
 Specs for the boonmee protocol can be found in the `boonmee.protocol` namespace.
 
 ## Example RPC
+
+Here's our example Clojure source code:
+
+```clojure 
+(ns tonal.core
+  (:require ["@tonaljs/tonal" :refer [Midi]]))
+
+(Midi/m )
+```
+
+Our examples will be querying at loc `[4 8]` 
+
+### Completions
+
+#### Request
+
+```javascript 
+{}
+```
+
+#### Response
+
+```javascript
+{}
+``
+
+### Completions
+
+#### Request
+
+```javascript 
+{}
+```
+
+#### Response
+
+```javascript
+{}
+``
+
+### Definitions
+
+#### Request
+
+```javascript 
+{}
+```
+
+#### Response
+
+```javascript
+{}
+``
