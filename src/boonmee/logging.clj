@@ -9,15 +9,20 @@
 (defprotocol Logger
   (log [this msg]))
 
+(defrecord TcpLogger [client-id]
+  Logger
+  (log [_ msg]
+    (println (assoc msg :client-id client-id))))
+
 (defrecord StdoutLogger []
   Logger
   (log [_ msg]
-   (println msg)))
+    (println msg)))
 
 (defrecord AsyncLogger [ch]
   Logger
   (log [_ msg]
-   (async/put! ch msg)))
+    (async/put! ch msg)))
 
 (defonce logger
   (atom nil))
@@ -41,6 +46,14 @@
   (some-> ch async/close!)
   (some-> writer ^Writer .close)
   (some-> go-loop async/close!)
+  (reset! logger nil))
+
+(defmethod ig/init-key :logger/tcp-logger
+  [_ {:keys [client-id]}]
+  (reset! logger (TcpLogger. client-id)))
+
+(defmethod ig/halt-key! :logger/tcp-logger
+  [_ _]
   (reset! logger nil))
 
 (defmethod ig/init-key :logger/stdout-logger

@@ -1,7 +1,6 @@
 (ns boonmee.client.stdio
   (:require [boonmee.server]
             [boonmee.tsserver.server]
-            [boonmee.logging :as log]
             [boonmee.util :as util]
             [clojure.core.async :as async]
             [clojure.data.json :as json]
@@ -19,32 +18,35 @@
   :boonmee/stdio-client
   [_ {:keys [client-req-ch client-resp-ch in out]}]
   (init-stdio-client! client-req-ch)
-  {:in  (util/line-handler [line in]
-          (try
-            (let [req (json/read-str line :key-fn keyword)]
-              (async/put! client-req-ch req))
-            (catch Throwable e
-              (log/errorf e "Failed to parse client req %s" line)
-              (async/put! client-resp-ch {:command "error"
-                                          :type    "response"
-                                          :success false
-                                          :message (.getMessage e)}))))
-   :out (async/go-loop []
-          (when-let [resp (async/<! client-resp-ch)]
+  (let [ts (atom (System/currentTimeMillis))]
+    {:ts  ts
+     :in  (util/line-handler [line in]
             (try
-              (.println ^PrintWriter out (json/write-str resp))
+              (reset! ts (System/currentTimeMillis))
+              (let [req (json/read-str line :key-fn keyword)]
+                (async/put! client-req-ch req))
               (catch Throwable e
-                (log/errorf e "Failed to write client resp %s" resp)
                 (async/put! client-resp-ch {:command "error"
                                             :type    "response"
                                             :success false
-                                            :message (.getMessage e)})))
-            (recur)))})
+                                            :message (.getMessage e)}))))
+     :out (async/go-loop []
+            (when-let [resp (async/<! client-resp-ch)]
+              (try
+                (.println ^PrintWriter out (json/write-str resp))
+                (.flush out)
+                (catch Throwable e
+                  (async/put! client-resp-ch {:command "error"
+                                              :type    "response"
+                                              :success false
+                                              :message (.getMessage e)})))
+              (recur)))}))
 
 (defmethod ig/halt-key!
   :boonmee/stdio-client
-  [_ {:keys [in]}]
-  (some-> in async/close!))
+  [_ {:keys [in out]}]
+  (async/close! out)
+  (.close in))
 
 (defmethod ig/init-key :boonmee/stdio-reader
   [_ {:keys [in]}]

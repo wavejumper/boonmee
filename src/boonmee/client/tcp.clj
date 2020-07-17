@@ -1,10 +1,14 @@
 (ns boonmee.client.tcp
-  (:require [boonmee.client.stdio]
-            [integrant.core :as ig])
-  (:import (java.net ServerSocket Socket)
+  (:require [clojure.core.async :as async]
+            [boonmee.client.stdio]
+            [integrant.core :as ig]
+            [net.tcp.server :as tcp]
+            [boonmee.logging :as log])
+  (:import (java.net Socket)
+           (java.util UUID)
            (java.io InputStreamReader PrintWriter)))
 
-(defn config
+(defn handler-config
   [opts]
   {[:async/chan :chan/tsserver-resp-ch] {}
    [:async/chan :chan/tsserver-req-ch]  {}
@@ -19,43 +23,67 @@
                                          :ctx              {}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
-                                         :in             (ig/ref :tcp/socket-reader)
-                                         :out            (ig/ref :tcp/socket-writer)}
-   :tcp/socket                          {:port (:port opts)}
-   :tcp/socket-reader                   {:socket (ig/ref :tcp/socket)}
-   :tcp/socket-writer                   {:socket (ig/ref :tcp/socket)}
-   :logger/stdout-logger                {}})
+                                         :in             (:in opts)
+                                         :out            (:out opts)}
+   :logger/tcp-logger                   {:client-id (:client-id opts)}})
+
+(defn config
+  [opts]
+  {:tcp/socket {:port      (:port opts)
+                :heartbeat (:heartbeat opts)}})
+
+(defn heartbeat-loop
+  [heartbeat-ms p {:keys [ts]}]
+  (async/go-loop []
+    (let [now           (System/currentTimeMillis)
+          last-seen-msg @ts]
+      (if (< (- now last-seen-msg) heartbeat-ms)
+        (do (async/<! (async/timeout 1000))
+            (recur))
+        (deliver p true)))))
+
+(defn handle-connection
+  [conns {:keys [heartbeat] :as opts} ^Socket socket]
+  (try
+    (let [id             (str (UUID/randomUUID))
+          in             (InputStreamReader. (.getInputStream socket))
+          out            (PrintWriter. (.getOutputStream socket) true)
+          opts           (assoc opts :client-id id :in in :out out)
+          sys            (ig/init (handler-config opts))
+          close-promise  (promise)
+          heartbeat-loop (heartbeat-loop heartbeat close-promise (:boonmee/stdio-client sys))
+          conn           {:in             in
+                          :out            out
+                          :sys            sys
+                          :close-promise  close-promise
+                          :heartbeat-loop heartbeat-loop}]
+      (log/info "New connection")
+      (swap! conns conj conn)
+      (deref close-promise)
+      (log/info "Connection closed")
+      (async/close! heartbeat-loop)
+      (ig/halt! sys)
+      (.close socket)
+      (.close in)
+      (.close out))
+    (catch Throwable e
+      (.printStackTrace e))))
 
 (defmethod ig/init-key
   :tcp/socket
-  [_ {:keys [port]}]
+  [_ {:keys [port] :as opts}]
   (println "boonmee listening on " port)
-  (let [server (ServerSocket. ^int port)]
+  (let [conns   (atom [])
+        handler (partial handle-connection conns opts)
+        server  (tcp/tcp-server :port port :handler handler)]
+    (tcp/start server)
     {:server server
-     :client (.accept server)}))
+     :conns  conns}))
 
 (defmethod ig/halt-key!
   :tcp/socket
-  [_ {:keys [server client]}]
-  (.close ^Socket client)
-  (.close ^ServerSocket server))
-
-(defmethod ig/init-key
-  :tcp/socket-reader
-  [_ {:keys [socket]}]
-  (InputStreamReader. (.getInputStream ^Socket (:client socket))))
-
-(defmethod ig/halt-key!
-  :tcp/socket-reader
-  [_ reader]
-  (.close ^InputStreamReader reader))
-
-(defmethod ig/init-key
-  :tcp/socket-writer
-  [_ {:keys [socket]}]
-  (PrintWriter. (.getOutputStream ^Socket (:client socket)) true))
-
-(defmethod ig/halt-key!
-  :tcp/socket-writer
-  [_ writer]
-  (.close ^PrintWriter writer))
+  [_ {:keys [server conns]}]
+  (doseq [{:keys [close-promise]} @conns]
+    (deliver close-promise true))
+  (tcp/stop server)
+  {})

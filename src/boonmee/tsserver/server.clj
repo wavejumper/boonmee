@@ -26,6 +26,6 @@
   [_ {:keys [tsserver out err in]}]
   (some-> tsserver sh/done)
   (some-> tsserver sh/destroy)
-  (some-> out async/close!)
-  (some-> err async/close!)
-  (some-> in async/close!))
+  (some-> in async/close!)
+  (.close out)
+  (.close err))

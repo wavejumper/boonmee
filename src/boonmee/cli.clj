@@ -17,6 +17,10 @@
     :parse-fn #(Integer/parseInt %)
     :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
 
+   ["-H" "--heartbeat" "TCP heartbeat (ms)"
+    :default 30000
+    :parse-fn #(Integer/parseInt %)]
+
    ["-h" "--help"]])
 
 (defn -main

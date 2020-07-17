@@ -9,7 +9,8 @@
                  [wavejumper/conch "0.9.3"]
                  [rewrite-clj "0.6.1"]
                  [integrant "0.8.0"]
-                 [expound "0.8.5"]]
+                 [expound "0.8.5"]
+                 [tcp-server "0.1.0"]]
 
   :profiles {:dev          {:test-paths   ["test"]
                             :repl-options {:init-ns dev}

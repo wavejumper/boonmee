@@ -16,6 +16,7 @@
   [[line-binding reader] & body]
   `(let [r#  (BufferedReader. ~reader)
          ch# (async/thread
+              ;; TODO: better impl
               (doseq [~line-binding (line-seq r#)]
                 ~@body))]
      (line-handler* r# ch#)))
