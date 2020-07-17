@@ -114,13 +114,29 @@
                        :method)}))))
 
   String
-  (interop [this _ zip]
-    (let [parent (z/sexpr (z/up zip))]
-      (if (and (vector? parent)
-               (s/valid? :clojure.core.specs.alpha/ns-require
-                         ;; I don't want to bring in cljs as a dep :'(
-                         [:require (update parent 0 #(when (string? %) (symbol %)))])
-               (-> parent first string?))
+  (interop [this ctx zip]
+    (let [parent        (z/sexpr (z/up zip))
+          require-form? (and (vector? parent)
+                             (s/valid? :clojure.core.specs.alpha/ns-require
+                                       ;; I don't want to bring in cljs as a dep :'(
+                                       [:require (update parent 0 #(when (string? %) (symbol %)))])
+                             (-> parent first string?))
+          fn-inv        (some-> zip z/prev z/prev z/sexpr)
+          aset-call?    (= 'aset fn-inv)
+          aget-call?    (= 'aget fn-inv)
+          sym           (interop (z/prev zip) ctx zip)]
+      (cond
+        (and aget-call? sym)
+        {:fragment this
+         :sym      sym
+         :usage    :property}
+
+        (and aset-call? sym)
+        {:fragment this
+         :sym      sym
+         :usage    :method}
+
+        require-form?
         {:fragment nil
          :sym      this
          :usage    :require})))
