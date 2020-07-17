@@ -124,17 +124,18 @@
           fn-inv        (some-> zip z/prev z/prev z/sexpr)
           aset-call?    (= 'aset fn-inv)
           aget-call?    (= 'aget fn-inv)
-          sym           (interop (z/prev zip) ctx zip)]
+          prev-sexpr    (z/sexpr (z/prev zip))
+          sym           (when (symbol? prev-sexpr)
+                          (if (namespace prev-sexpr)
+                            ((:es6-syms ctx) (-> this namespace symbol))
+                            ((:es6-syms ctx) prev-sexpr)))]
       (cond
-        (and aget-call? sym)
+        (and (or aset-call? aget-call?) sym)
         {:fragment this
          :sym      sym
-         :usage    :property}
-
-        (and aset-call? sym)
-        {:fragment this
-         :sym      sym
-         :usage    :method}
+         :usage    (if aget-call?
+                     :property
+                     :method)}
 
         require-form?
         {:fragment nil
