@@ -3,7 +3,7 @@ version: 2.1
 executors:
   lein:
     docker:
-      - image: openjdk-14-lein-2.9.3-buster
+      - image: circleci:openjdk-14-lein-2.9.3-buster
     working_directory: ~/repo
 
 jobs:
