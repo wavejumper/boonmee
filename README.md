@@ -122,7 +122,7 @@ The `--env` switch tells boonmee which environment your Cljs project is targetti
 
 This enables intellisense for `js/...` globals. 
 
-Options are: `browser` or `node`.
+Options are: `browser` (default) or `node`.
 
 ``` 
 ./boonmee --env=browser
