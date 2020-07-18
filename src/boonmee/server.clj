@@ -190,7 +190,6 @@
                    close-ch {:closed? true}
                    client-req-ch (process-client-req state logger val)
                    tsserver-resp-ch (process-tsserver-resp state logger val))]
-
       (doseq [resp (:client/responses result)]
         ;; Only throw assertion errors on responses if `check-asserts?` is enabled
         #_(s/assert :client/response resp)
