@@ -2,8 +2,7 @@
   (:refer-clojure :exclude [compile])
   (:require [clojure.string :as str]
             [boonmee.compiler.analyser :as ana]
-            [boonmee.util :as util]
-            [boonmee.logging :as log])
+            [boonmee.util :as util])
   (:import (java.io File)))
 
 (defn import-statements
@@ -129,7 +128,6 @@
         ext       (last (str/split (.getName file) #"\."))
         compiled  (compile-form ctx form)
         file-name (file-name (:ns ctx) ext (:js-out compiled))]
-    (log/debugf "Compiling %s to %s" (:ns ctx) file-name)
     {:ctx       ctx
      :compiled  compiled
      :ext       ext

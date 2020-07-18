@@ -9,12 +9,12 @@
                  [wavejumper/conch "0.9.3"]
                  [rewrite-clj "0.6.1"]
                  [integrant "0.8.0"]
-                 [expound "0.8.5"]
-                 [tcp-server "0.1.0"]]
+                 [expound "0.8.5"]]
 
-  :profiles {:dev          {:test-paths   ["test"]
-                            :repl-options {:init-ns dev}
-                            :main         boonmee.cli}
+  :profiles {:dev          {:test-paths     ["test"]
+                            :resource-paths ["dev-resources"]
+                            :repl-options   {:init-ns dev}
+                            :main           boonmee.cli}
              :kaocha       {:dependencies [[lambdaisland/kaocha "1.0.632"]]}
              :native-image {:dependencies [[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]]}
              :uberjar      {:global-vars {*assert* false}

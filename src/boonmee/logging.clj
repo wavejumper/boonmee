@@ -2,115 +2,89 @@
   (:require [clojure.core.async :as async]
             [clojure.java.io :as io]
             [integrant.core :as ig])
-  (:import (java.io Writer)))
-
-;; timbre or clojure.tools.logging make native images sad :(
+  (:import (java.io Closeable)))
 
 (defprotocol Logger
   (log [this msg]))
 
-(defrecord TcpLogger [client-id]
+(defrecord StdoutLogger [ctx]
   Logger
   (log [_ msg]
-    (println (assoc msg :client-id client-id))))
+    (println (merge ctx msg))))
 
-(defrecord StdoutLogger []
-  Logger
-  (log [_ msg]
-    (println msg)))
-
-(defrecord AsyncLogger [ch]
-  Logger
-  (log [_ msg]
-    (async/put! ch msg)))
-
-(defonce logger
-  (atom nil))
+(defn file-logger
+  [fname]
+  (let [ch       (async/chan)
+        writer   (io/writer fname :append true)
+        appender (async/go-loop []
+                   (when-let [msg (async/<! ch)]
+                     (.write writer (pr-str msg))
+                     (.flush writer)
+                     (recur)))]
+    (reify
+      Logger
+      (log [_ m]
+        (async/put! ch m))
+      Closeable
+      (close [_]
+        (.close writer)
+        (async/close! ch)
+        (async/close! appender)))))
 
 (defmethod ig/init-key :logger/file-logger
   [_ {:keys [fname]}]
-  (let [ch (async/chan)
-        w  (io/writer fname :append true)
-        l  (AsyncLogger. ch)]
-    (reset! logger l)
-    {:ch      ch
-     :writer  w
-     :logger  l
-     :go-loop (async/go-loop []
-                (when-let [msg (async/<! ch)]
-                  (.write w (pr-str msg))
-                  (recur)))}))
+  (file-logger fname))
 
 (defmethod ig/halt-key! :logger/file-logger
-  [_ {:keys [ch writer go-loop]}]
-  (some-> ch async/close!)
-  (some-> writer ^Writer .close)
-  (some-> go-loop async/close!)
-  (reset! logger nil))
-
-(defmethod ig/init-key :logger/tcp-logger
-  [_ {:keys [client-id]}]
-  (reset! logger (TcpLogger. client-id)))
-
-(defmethod ig/halt-key! :logger/tcp-logger
-  [_ _]
-  (reset! logger nil))
+  [_ ^Closeable logger]
+  (.close logger))
 
 (defmethod ig/init-key :logger/stdout-logger
-  [_ _]
-  (reset! logger (StdoutLogger.)))
-
-(defmethod ig/halt-key! :logger/stdout-logger
-  [_ _]
-  (reset! logger nil))
-
-(defn log*
-  [m]
-  (when-let [logger @logger]
-    (log logger m)))
+  [_ {:keys [ctx]}]
+  (StdoutLogger. ctx))
 
 (defn debug
-  ([msg]
-   (log* {:level :info :message msg}))
-  ([e msg]
-   (log* {:level :info :error e :message msg})))
+  ([logger msg]
+   (log logger {:level :info :message msg}))
+  ([logger e msg]
+   (log logger {:level :info :error e :message msg})))
 
 (defn info
-  ([msg]
-   (log* {:level :info :message msg}))
-  ([e msg]
-   (log* {:level :info :error e :message msg})))
+  ([logger msg]
+   (log logger {:level :info :message msg}))
+  ([logger e msg]
+   (log logger {:level :info :error e :message msg})))
 
 (defn warn
-  ([msg]
-   {:level :warn :message msg})
-  ([e msg]
-   {:level :warn :error e :message msg}))
+  ([logger msg]
+   (log logger {:level :warn :message msg}))
+  ([logger e msg]
+   (log logger {:level :warn :error e :message msg})))
 
 (defn error
-  ([msg]
-   (log* {:level :error :message msg}))
-  ([e msg]
-   (log* {:level :error :error e :message msg})))
+  ([logger msg]
+   (log logger {:level :error :message msg}))
+  ([logger e msg]
+   (log logger {:level :error :error e :message msg})))
 
-(defn logf*
-  [level [e? s & args]]
+(defn logf
+  [logger level [e? s & args]]
   (if (string? e?)
-    (log* {:level level :message (apply format e? s args)})
-    (log* {:level level :error e? :message (apply format s args)})))
+    (log logger {:level level :message (apply format e? s args)})
+    (log logger {:level level :error e? :message (apply format s args)})))
 
 (defn debugf
-  [& args]
-  (logf* :debug args))
+  [logger & args]
+  (logf logger :debug args))
 
 (defn infof
-  [& args]
-  (logf* :info args))
+  [logger & args]
+  (logf logger :info args))
 
 (defn warnf
-  [& args]
-  (logf* :warn args))
+  [logger & args]
+  (logf logger :warn args))
 
 (defn errorf
-  [& args]
-  (logf* :error args))
+  [logger & args]
+  (logf logger :error args))

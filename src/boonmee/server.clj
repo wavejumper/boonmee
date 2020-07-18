@@ -18,6 +18,8 @@
   (let [seq (:seq state)]
     (.getAndIncrement ^AtomicInteger seq)))
 
+(def ->logger :logger)
+
 (defn handle-definition
   [req]
   (let [file         (-> req :arguments :file io/file)
@@ -78,7 +80,7 @@
 
 (defmethod handle-client-request :default
   [state req]
-  (log/warnf "Unsupported client request: %s" req)
+  (log/warnf (->logger state) "Unsupported client request: %s" req)
   {:state state})
 
 (defmethod handle-client-request "info"
@@ -90,6 +92,7 @@
                        :success    true
                        :data       {:seq     (let [seq (:seq state)]
                                                (.get ^AtomicInteger seq))
+                                    :ctx     (:ctx state)
                                     :init    (:init state)
                                     :version (:version state)}}]})
 
@@ -119,12 +122,12 @@
 
 (defmethod handle-tsserver-response :default
   [state resp]
-  (log/warnf "Unsupported tsserver response: %s" resp)
+  (log/warnf (->logger state) "Unsupported tsserver response: %s" resp)
   {:state state})
 
 (defmethod handle-tsserver-response "completionInfo"
   [state resp]
-  (log/info resp)
+  (log/info (->logger state) resp)
   (let [seq-id     (get resp "request_seq")
         request-id (get-in state [:completions seq-id])]
     {:client/responses [{:command    "completionInfo"
@@ -140,17 +143,18 @@
     (json/read-str resp :key-fn keyword)))
 
 (defn initial-state
-  [ctx]
+  [logger ctx]
   {:seq     (AtomicInteger. 0)
+   :logger  logger
    :ctx     ctx
    :init    (System/currentTimeMillis)
    :version "1.0.0"})
 
 (defmethod ig/init-key :boonmee/server
   [_ {:keys [tsserver-resp-ch tsserver-req-ch
-             client-resp-ch client-req-ch ctx]}]
+             client-resp-ch client-req-ch ctx logger]}]
   ;; TODO: close-ch, threadpool? etc
-  (async/go-loop [state (initial-state ctx)]
+  (async/go-loop [state (initial-state logger ctx)]
     (let [{:keys [client/responses tsserver/requests state]}
           (async/alt!
            client-req-ch
@@ -164,7 +168,7 @@
                                      :success false
                                      :message (expound/expound-str :client/request req)}]})
               (catch Throwable e
-                (log/errorf e "Exception handling client request: %s" req)
+                (log/errorf logger e "Exception handling client request: %s" req)
                 {:state            state
                  :client/responses [{:command "error"
                                      :type    "response"
@@ -174,10 +178,11 @@
            tsserver-resp-ch
            ([resp]
             (try
-              (when-let [parsed-resp (parse-tsserver-resp resp)]
-                (handle-tsserver-response state parsed-resp))
+              (if-let [parsed-resp (parse-tsserver-resp resp)]
+                (handle-tsserver-response state parsed-resp)
+                {:state state})
               (catch Throwable e
-                (log/errorf e "Exception handling tsserver response: %s" resp)
+                (log/errorf logger e "Exception handling tsserver response: %s" resp)
                 {:state            state
                  :client/responses [{:command "error"
                                      :type    "response"

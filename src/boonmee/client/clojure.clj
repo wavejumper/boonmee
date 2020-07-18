@@ -13,12 +13,14 @@
    :boonmee/tsserver                    {:proc             (get overrides :tsserver/proc "tsserver")
                                          :proc-args        []
                                          :tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
-                                         :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)}
+                                         :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
+                                         :logger           (ig/ref :logger/stdout-logger)}
    :boonmee/server                      {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
-                                         :ctx              {}}
+                                         :logger           (ig/ref :logger/stdout-logger)
+                                         :ctx              {:client :clojure}}
    :logger/stdout-logger                {}})
 
 (defprotocol IClojureClient
