@@ -8,7 +8,7 @@
 (s/def :client/request
   (s/multi-spec client-request :command))
 
-(s/def :client.request/request-id string?)
+(s/def :client.request/requestId string?)
 (s/def :client.request/type #{"request"})
 
 ;;; Info
@@ -16,7 +16,7 @@
 (s/def :client.request.info/command #{"info"})
 
 (defmethod client-request "info" [_]
-  (s/keys :req-un [:client.request/request-id
+  (s/keys :req-un [:client.request/requestId
                    :client.request/type
                    :client.request.info/command]))
 
@@ -33,7 +33,7 @@
                    :client.request.completions.arguments/offset]))
 
 (defmethod client-request "completions" [_]
-  (s/keys :req-un [:client.request/request-id
+  (s/keys :req-un [:client.request/requestId
                    :client.request/type
                    :client.request.completions/command
                    :client.request.completions/arguments]))
@@ -66,7 +66,7 @@
   (s/keys :req-un [:client.response/type
                    :client.response/success
                    :client.response/message
-                   :client.request/request-id
+                   :client.request/requestId
                    :client.response.info/command
                    :client.response.info/data]))
 
@@ -79,18 +79,20 @@
                    :client.response/success
                    :client.response.error/command]
           :opt-un [:client.response/message
-                   :client.request/request-id]))
+                   :client.request/requestId]))
 
 ;;; Completion info
 
 (s/def :client.response.completionInfo/command #{"completionInfo"})
 (s/def :client.response.completionInfo/data string?)
+;; TODO: write spec
+(s/def :client.response.completionInfo/data map?)
 
 (defmethod client-response "completionInfo" [_]
   (s/keys :req-un [:client.response/type
                    :client.response/success
                    :client.response.completionInfo/command]
-          :opt-un [ :client.request/request-id
+          :opt-un [:client.request/requestId
                    :client.response.completionInfo/data
                    :client.response/message]))
 

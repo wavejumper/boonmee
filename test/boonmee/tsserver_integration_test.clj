@@ -4,7 +4,8 @@
             [clojure.core.async :as async]
             [clojure.java.io :as io]
             [boonmee.protocol]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [clojure.data.json :as json]))
 
 ;;;; Test utils
 
@@ -45,18 +46,44 @@
 (deftest completions
   (with-client [client {}]
     (testing "Successful request"
-      (let [req {:command    "completions"
-                 :type       "request"
-                 :request-id "12345"
-                 :arguments  {:file   (.getFile (io/resource "tonal/src/tonal/core.cljs"))
-                              :line   4
-                              :offset 7}}]
+      (let [req {:command   "completions"
+                 :type      "request"
+                 :requestId "12345"
+                 :arguments {:file   (.getFile (io/resource "tonal/src/tonal/core.cljs"))
+                             :line   4
+                             :offset 7}}]
         (is (s/valid? :client/request req))
         (request! client req)
         (let [resp (response! client 10000)]
-          (println resp)
           (is (s/valid? :client/response resp))
-          (is (map? resp)))))
+          (is (= {:command   "completionInfo"
+                  :type      "response"
+                  :success   true
+                  :data      {:isGlobalCompletion      false
+                              :isMemberCompletion      true
+                              :isNewIdentifierLocation false
+                              :entries                 [{:name          "freqToMidi"
+                                                         :kind          "property"
+                                                         :kindModifiers "declare"
+                                                         :sortText      "0"}
+                                                        {:name          "isMidi"
+                                                         :kind          "property"
+                                                         :kindModifiers "declare"
+                                                         :sortText      "0"}
+                                                        {:name          "midiToFreq"
+                                                         :kind          "property"
+                                                         :kindModifiers "declare"
+                                                         :sortText      "0"}
+                                                        {:name          "midiToNoteName"
+                                                         :kind          "property"
+                                                         :kindModifiers "declare"
+                                                         :sortText      "0"}
+                                                        {:name          "toMidi"
+                                                         :kind          "property"
+                                                         :kindModifiers "declare"
+                                                         :sortText      "0"}]}
+                  :requestId "12345"}
+                 resp)))))
 
     (testing "Unsuccessful request"
 

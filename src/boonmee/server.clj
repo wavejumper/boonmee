@@ -71,7 +71,7 @@
 
     {:tsserver/requests [(api/open id out-file)
                          (api/completions id out-file js-line js-offset)]
-     :state             (assoc-in state [:completions id] (:request-id req))}))
+     :state             (assoc-in state [:completions id] req)}))
 
 (defmulti
  handle-client-request
@@ -86,15 +86,15 @@
 (defmethod handle-client-request "info"
   [state req]
   {:state            state
-   :client/responses [{:type       "response"
-                       :command    "info"
-                       :request-id (:request-id req)
-                       :success    true
-                       :data       {:seq     (let [seq (:seq state)]
-                                               (.get ^AtomicInteger seq))
-                                    :ctx     (:ctx state)
-                                    :init    (:init state)
-                                    :version (:version state)}}]})
+   :client/responses [{:type      "response"
+                       :command   "info"
+                       :requestId (:requestId req)
+                       :success   true
+                       :data      {:seq     (let [seq (:seq state)]
+                                              (.get ^AtomicInteger seq))
+                                   :ctx     (:ctx state)
+                                   :init    (:init state)
+                                   :version (:version state)}}]})
 
 (defmethod handle-client-request "open"
   [state req]
@@ -118,22 +118,31 @@
 (defmulti
  handle-tsserver-response
  (fn [_state resp]
-   (:command resp)))
+   (case (:type resp)
+     "event" [(:type resp) (:event resp)]
+     "response" [(:type resp) (:command resp)]
+     nil)))
 
 (defmethod handle-tsserver-response :default
   [state resp]
   (log/warnf (->logger state) "Unsupported tsserver response: %s" resp)
   {:state state})
 
-(defmethod handle-tsserver-response "completionInfo"
+(defmethod handle-tsserver-response ["event" "typingsInstallerPid"]
+  [state _]
+  {:state state})
+
+(defmethod handle-tsserver-response ["response" "completionInfo"]
   [state resp]
-  (log/info (->logger state) resp)
-  (let [seq-id     (get resp "request_seq")
-        request-id (get-in state [:completions seq-id])]
-    {:client/responses [{:command    "completionInfo"
-                         :success    (:success resp)
-                         :message    (:message resp)
-                         :request-id request-id}]
+  (let [seq-id     (:request_seq resp)
+        request-id (get-in state [:completions seq-id :requestId])
+        message    (:message resp)]
+    {:client/responses [(cond-> {:command   "completionInfo"
+                                 :type      "response"
+                                 :success   (:success resp)
+                                 :data      (:body resp)
+                                 :requestId request-id}
+                          message (assoc :message message))]
      :state            (update state :completions dissoc seq-id)}))
 
 (defn parse-tsserver-resp

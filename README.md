@@ -138,13 +138,64 @@ Our examples will be querying at loc `[4 8]`
 #### Request
 
 ```javascript 
-{}
+{
+  "command": "completions",
+  "type": "request",
+  "requestId": "12345",
+  "arguments": {
+    "file": "/path/to/core.cljs",
+    "line": 4,
+    "offset": 7
+  }
+}
 ```
 
 #### Response
 
 ```javascript
-{}
+{
+  "command": "completionInfo",
+  "type": "response",
+  "success": true,
+  "data": {
+    "isGlobalCompletion": false,
+    "isMemberCompletion": true,
+    "isNewIdentifierLocation": false,
+    "entries": [
+      {
+        "name": "freqToMidi",
+        "kind": "property",
+        "kindModifiers": "declare",
+        "sortText": "0"
+      },
+      {
+        "name": "isMidi",
+        "kind": "property",
+        "kindModifiers": "declare",
+        "sortText": "0"
+      },
+      {
+        "name": "midiToFreq",
+        "kind": "property",
+        "kindModifiers": "declare",
+        "sortText": "0"
+      },
+      {
+        "name": "midiToNoteName",
+        "kind": "property",
+        "kindModifiers": "declare",
+        "sortText": "0"
+      },
+      {
+        "name": "toMidi",
+        "kind": "property",
+        "kindModifiers": "declare",
+        "sortText": "0"
+      }
+    ]
+  },
+  "requestId": "12345"
+}
 ```
 
 ### Quickinfo
