@@ -50,19 +50,31 @@
 
 (deftest deduce-js-interop
   (testing ":require ['react' ..."
-   (is (= {:fragment nil :sym "react" :usage :require}
-          (ana/deduce-js-interop
-           (ana/analyse-string (pr-str form1))
-           [1 27]))))
+    (is (= {:fragment      nil
+            :sym           "react"
+            :usage         :require
+            :prev-location [1 20]
+            :next-location [1 29]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 27]))))
 
   (testing ":as 'react'"
-    (is (= {:fragment nil :sym 'react :usage :unknown}
+    (is (= {:fragment      nil
+            :sym           'react
+            :usage         :unknown
+            :prev-location [1 29]
+            :next-location [1 42]}
            (ana/deduce-js-interop
             (ana/analyse-string (pr-str form1))
             [1 35]))))
 
   (testing "react/useState"
-    (is (= {:fragment 'useState :sym 'react :usage :method}
+    (is (= {:fragment      'useState
+            :sym           'react
+            :usage         :method
+            :prev-location [1 42]
+            :next-location [1 58]}
            (ana/deduce-js-interop
             (ana/analyse-string (pr-str form1))
             [1 45])))))

@@ -107,3 +107,23 @@
 
       ))
   )
+
+(deftest definition
+  (with-client [client {}]
+    (testing "Successful request"
+      (let [req {:command   "definition"
+                 :type      "request"
+                 :requestId "12345"
+                 :arguments {:file   (.getFile (io/resource "tonal/src/tonal/core.cljs"))
+                             :line   7
+                             :offset 10}}]
+        (is (s/valid? :client/request req))
+        (request! client req)
+        (let [resp (response! client 10000)]
+          (is (s/valid? :client/response resp))
+          (println resp))))
+
+    (testing "Unsuccessful request"
+
+      ))
+  )

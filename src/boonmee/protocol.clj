@@ -48,6 +48,16 @@
                    :client.request.quickinfo/command
                    :client.request.completions/arguments]))
 
+;;; Definition request
+
+(s/def :client.request.definition/command #{"definition"})
+
+(defmethod client-request "definition" [_]
+  (s/keys :req-un [:client.request/requestId
+                   :client.request/type
+                   :client.request.definition/command
+                   :client.request.completions/arguments]))
+
 
 ;;;; Client responses
 
