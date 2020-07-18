@@ -46,7 +46,7 @@ Refer to the CI job on how to compile boonmee as a native image from source.
 
 ## Dependencies 
 
-boonmee requires [NodeJS](https://nodejs.org/en/), and `tsserver`:
+boonmee requires [NodeJS](https://nodejs.org/en/), and the TypeScript standalone server (`tsserver`):
 
 ```
 npm install -g typescript
@@ -62,7 +62,7 @@ By default, boonmee will use the `tsserver` found on your `$PATH`. However, you 
 
 Some editors, like VSCode come bundled with `tsserver`.
 
-If you are building a boonmee plugin for VSCode, you can have boonmee connect to a remote instance:
+If you are integrating boonmee with a VSCode plugin, you can have boonmee connect to a remote instance of `tsserver`:
 
 ``` 
 ./boonmee --tsserverPort=9433
@@ -102,7 +102,7 @@ If you would like to use boonmee directly from a Clojure project, bring in the f
 
 Note: boonmee analyses NPM dependencies found in a `node_modules` directory at your project's root. 
 
-If you rely on cljsjs you're out of luck.
+If you rely on cljsjs packages you're out of luck.
 
 If you are a [shadow-cljs](http://shadow-cljs.org/) user, using boonmee should be a seamless experience.
 
