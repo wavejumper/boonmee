@@ -55,7 +55,7 @@ npm install -g typescript
 By default, boonmee will use the `tsserver` found on your `$PATH`. However, you can also specify a custom path:
 
 ```
-./boonmee --tsserverPath=/path/to/tsserver
+./boonmee --tsserver-path=/path/to/tsserver
 ````
 
 ### tsserver over TCP
@@ -65,7 +65,7 @@ Some editors, like VSCode come bundled with `tsserver`.
 If you are integrating boonmee with a VSCode plugin, you can have boonmee connect to a remote instance of `tsserver`:
 
 ``` 
-./boonmee --tsserverPort=9433
+./boonmee --tsserver-port=9433
 ```
 
 This removes the dependency on NodeJS :)
@@ -114,6 +114,18 @@ That means a `@types/*` package should be installed as a dev dependency, if the 
 
 ```
 npm install --save-dev @types/react
+```
+
+### Globals
+
+The `--env` switch tells boonmee which environment your Cljs project is targetting. 
+
+This enables intellisense for `js/...` globals. 
+
+Options are: `browser` or `node`.
+
+``` 
+./boonmee --env=browser
 ```
 
 ## Protocol
