@@ -1,25 +1,32 @@
 (ns boonmee.util
-  (:require [clojure.java.io :as io]
-            [clojure.core.async :as async])
-  (:import (java.io BufferedReader File Closeable)
+  (:require [clojure.java.io :as io])
+  (:import (java.io Reader BufferedReader File Closeable IOException)
            (java.security MessageDigest)))
 
-(defn line-handler*
-  [rdr ch]
-  (reify
-    Closeable
-    (close [_]
-      (.close rdr)
-      (async/close! ch))))
+(defn -line-handler
+  [^BufferedReader rdr ^Runnable f]
+  (let [id     (str (gensym "line-handler*"))
+        thread (Thread. f id)]
+    (.start thread)
+    (reify
+      Closeable
+      (close [_]
+        (.close rdr)
+        (.join thread)))))
+
+(defn buffered-reader-open?
+  [^BufferedReader reader]
+  (try (.ready reader)
+       (catch IOException _ false)))
 
 (defmacro line-handler
-  [[line-binding reader] & body]
-  `(let [r#  (BufferedReader. ~reader)
-         ch# (async/thread
-              ;; TODO: better impl
-              (doseq [~line-binding (line-seq r#)]
-                ~@body))]
-     (line-handler* r# ch#)))
+  [[binding ^Reader reader] & body]
+  `(let [r# (BufferedReader. ~reader)
+         f# (fn []
+              (while (buffered-reader-open? r#)
+                (when-let [~binding (.readLine r#)]
+                  ~@body)))]
+     (-line-handler r# f#)))
 
 (defn sha256
   [string]

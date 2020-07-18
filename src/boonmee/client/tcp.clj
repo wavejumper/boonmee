@@ -56,13 +56,14 @@
 (defmethod ig/init-key :tcp/connection-heartbeat
   [_ {:keys [client logger heartbeat-ms promise]}]
   (async/go-loop []
-    (let [now           (System/currentTimeMillis)
-          last-seen-msg (-> client :ts deref)]
-      (if (< (- now last-seen-msg) heartbeat-ms)
-        (do (async/<! (async/timeout 1000))
-            (recur))
-        (do (log/warnf logger "Connection timeout after %s" heartbeat-ms)
-            (deliver promise true))))))
+    (when-not (realized? promise)
+      (let [now           (System/currentTimeMillis)
+            last-seen-msg (-> client :ts deref)]
+        (if (< (- now last-seen-msg) heartbeat-ms)
+          (do (async/<! (async/timeout 1000))
+              (recur))
+          (do (log/warnf logger "Connection timeout after %s" heartbeat-ms)
+              (deliver promise true)))))))
 
 (defmethod ig/halt-key! :tcp/connection-heartbeat
   [_ ch]
@@ -81,9 +82,9 @@
     (let [client-id (str (UUID/randomUUID))
           opts      (assoc opts :client-id client-id :promise close-promise :socket socket)
           sys       (ig/init (handler-config opts))]
-      (log/info logger "New connection: %s" client-id)
+      (log/infof logger "New connection: %s" client-id)
       (fn []
-        (log/info logger "Connection closed: %s" client-id)
+        (log/infof logger "Connection closed: %s" client-id)
         (ig/halt! sys)))
     (catch Throwable e
       (println e)

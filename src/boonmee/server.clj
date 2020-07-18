@@ -150,58 +150,76 @@
    :init    (System/currentTimeMillis)
    :version "1.0.0"})
 
-(defmethod ig/init-key :boonmee/server
-  [_ {:keys [tsserver-resp-ch tsserver-req-ch
-             client-resp-ch client-req-ch ctx logger]}]
-  ;; TODO: close-ch, threadpool? etc
+(defn process-client-req
+  [state logger req]
+  (try
+    (if (s/valid? :client/request req)
+      (handle-client-request state req)
+      {:state            state
+       :client/responses [{:command "error"
+                           :type    "response"
+                           :success false
+                           :message (expound/expound-str :client/request req)}]})
+    (catch Throwable e
+      (log/errorf logger e "Exception handling client request: %s" req)
+      {:state            state
+       :client/responses [{:command "error"
+                           :type    "response"
+                           :success false
+                           :message (.getMessage e)}]})))
+
+(defn process-tsserver-resp
+  [state logger resp]
+  (try
+    (if-let [parsed-resp (parse-tsserver-resp resp)]
+      (handle-tsserver-response state parsed-resp)
+      {:state state})
+    (catch Throwable e
+      (log/errorf logger e "Exception handling tsserver response: %s" resp)
+      {:state            state
+       :client/responses [{:command "error"
+                           :type    "response"
+                           :success false
+                           :message (.getMessage e)}]})))
+
+(defn server-loop
+  [close-ch {:keys [tsserver-resp-ch tsserver-req-ch client-resp-ch client-req-ch ctx logger]}]
   (async/go-loop [state (initial-state logger ctx)]
-    (let [{:keys [client/responses tsserver/requests state]}
-          (async/alt!
-           client-req-ch
-           ([req]
-            (try
-              (if (s/valid? :client/request req)
-                (handle-client-request state req)
-                {:state            state
-                 :client/responses [{:command "error"
-                                     :type    "response"
-                                     :success false
-                                     :message (expound/expound-str :client/request req)}]})
-              (catch Throwable e
-                (log/errorf logger e "Exception handling client request: %s" req)
-                {:state            state
-                 :client/responses [{:command "error"
-                                     :type    "response"
-                                     :success false
-                                     :message (.getMessage e)}]})))
+    (let [[val ch] (async/alts! [client-req-ch tsserver-resp-ch close-ch])
+          result (condp = ch
+                   close-ch {:closed? true}
+                   client-req-ch (process-client-req state logger val)
+                   tsserver-resp-ch (process-tsserver-resp state logger val))]
 
-           tsserver-resp-ch
-           ([resp]
-            (try
-              (if-let [parsed-resp (parse-tsserver-resp resp)]
-                (handle-tsserver-response state parsed-resp)
-                {:state state})
-              (catch Throwable e
-                (log/errorf logger e "Exception handling tsserver response: %s" resp)
-                {:state            state
-                 :client/responses [{:command "error"
-                                     :type    "response"
-                                     :success false
-                                     :message (.getMessage e)}]}))))]
-
-      (doseq [resp responses]
+      (doseq [resp (:client/responses result)]
         ;; Only throw assertion errors on responses if `check-asserts?` is enabled
         #_(s/assert :client/response resp)
         (async/put! client-resp-ch resp))
 
-      (doseq [req requests]
+      (doseq [req (:tsserver/requests result)]
         (async/put! tsserver-req-ch req))
 
-      (recur state))))
+      (cond
+        (:closed? result)
+        (log/info logger "closing server")
+
+        (:state result)
+        (recur (:state result))
+
+        :else
+        (do (log/errorf logger "handler returned nil state value, returning previous state: %s" val)
+            (recur state))))))
+
+(defmethod ig/init-key :boonmee/server
+  [_ opts]
+  (let [close-ch (async/chan)]
+    {:close-ch    close-ch
+     :server-loop (server-loop close-ch opts)}))
 
 (defmethod ig/halt-key! :boonmee/server
-  [_ ch]
-  (some-> ch async/close!))
+  [_ {:keys [server-loop close-ch]}]
+  (some-> close-ch async/close!)
+  (some-> server-loop async/close!))
 
 (defmethod ig/init-key :async/chan
   [_ _]
