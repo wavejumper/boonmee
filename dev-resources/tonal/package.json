@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tonaljs/tonal": "^4.0.2"
+    "@tonaljs/tonal": "^4.0.2",
+    "typescript": "^3.9.7"
   }
 }

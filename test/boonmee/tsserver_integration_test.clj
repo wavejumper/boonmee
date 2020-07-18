@@ -12,15 +12,20 @@
   [opts]
   (println "Clean up!"))
 
+(defn client-config []
+  (if-let [f (io/resource "tonal/node_modules/typescript/bin/tsserver")]
+    (client/config {:tsserver/proc (.getFile f)})
+    (throw (RuntimeException. "tsserver not found on classpath. Please run `npm install`"))))
+
 (defmacro with-client [[sym opts] & body]
   `(let [opts#   ~opts
-         client# (client/start (client/map->ClojureClient {:config (client/config {})}))]
-    (try
-      (let [~sym client#]
-        ~@body)
-      (finally
-        (client/stop client#)
-        (clean-up-boonmee opts#)))))
+         client# (client/start (client/map->ClojureClient {:config (client-config)}))]
+     (try
+       (let [~sym client#]
+         ~@body)
+       (finally
+         (client/stop client#)
+         (clean-up-boonmee opts#)))))
 
 (defn response!
   [client timeout-ms]
