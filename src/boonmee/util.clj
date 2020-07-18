@@ -18,12 +18,10 @@
   [^BufferedReader reader]
   (try (.ready reader)
        true
-       (catch IOException _
-         (println "closing stream...")
-         false)))
+       (catch IOException _ false)))
 
 (defmacro line-handler
-  [[binding reader] & body]
+  [[binding ^Reader reader] & body]
   `(let [r# (BufferedReader. ~reader)
          f# (fn []
               (while (buffered-reader-open? r#)
