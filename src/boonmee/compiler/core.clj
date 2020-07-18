@@ -68,7 +68,7 @@
   (-compile [this ctx]
     (when-let [sym (ana/deduce-js-interop ctx loc)]
       [{:cursor? cursor?
-        :js-out  (str (:sym sym) ".u")
+        :js-out  (str (:sym sym) "." (:fragment sym))
         :sym     sym
         :sym-ctx this
         :ctx     ctx}])))

@@ -38,6 +38,17 @@
                    :client.request.completions/command
                    :client.request.completions/arguments]))
 
+;;; Quickinfo request
+
+(s/def :client.request.quickinfo/command #{"quickinfo"})
+
+(defmethod client-request "quickinfo" [_]
+  (s/keys :req-un [:client.request/requestId
+                   :client.request/type
+                   :client.request.quickinfo/command
+                   :client.request.completions/arguments]))
+
+
 ;;;; Client responses
 
 (defmulti client-response :command)

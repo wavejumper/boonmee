@@ -21,8 +21,9 @@
 (def ->logger :logger)
 
 (defn handle-definition
-  [req]
-  (let [file         (-> req :arguments :file io/file)
+  [state req]
+  (let [id           (seq-id state)
+        file         (-> req :arguments :file io/file)
         loc          [(-> req :arguments :line)
                       (-> req :arguments :offset)]
         form         [(es6-import)
@@ -34,12 +35,14 @@
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
 
-    [(api/open 0 out-file)
-     (api/definition 0 out-file js-line js-offset)]))
+    {:tsserver/requests [(api/open 0 out-file)
+                         (api/definition 0 out-file js-line js-offset)]
+     :state             (assoc-in state [:definition id] req)}))
 
 (defn handle-quick-info
-  [req]
-  (let [file         (-> req :arguments :file io/file)
+  [state req]
+  (let [id           (seq-id state)
+        file         (-> req :arguments :file io/file)
         loc          [(-> req :arguments :line)
                       (-> req :arguments :offset)]
         form         [(es6-import)
@@ -51,8 +54,9 @@
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
 
-    [(api/open 0 out-file)
-     (api/quick-info 0 out-file js-line js-offset)]))
+    {:tsserver/requests [(api/open id out-file)
+                         (api/quick-info id out-file js-line js-offset)]
+     :state             (assoc-in state [:quickinfo id] req)}))
 
 (defn handle-completions
   [state req]
@@ -107,13 +111,11 @@
 
 (defmethod handle-client-request "quickinfo"
   [state req]
-  {:tsserver/requests (handle-quick-info req)
-   :state             state})
+  (handle-quick-info state req))
 
 (defmethod handle-client-request "definition"
   [state req]
-  {:tsserver/requests (handle-definition req)
-   :state             state})
+  (handle-definition state req))
 
 (defmulti
  handle-tsserver-response
