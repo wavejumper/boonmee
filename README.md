@@ -44,6 +44,32 @@ Binaries are built via [CircleCI]() - you can view the CI job to verify the SHA 
 
 Refer to the CI job on how to compile boonmee as a native image from source.
 
+## Dependencies 
+
+boonmee requires [NodeJS](https://nodejs.org/en/), and `tsserver`:
+
+```
+npm install -g typescript
+```
+
+By default, boonmee will use the `tsserver` found on your `$PATH`. However, you can also specify a custom path:
+
+```
+./boonmee --tsserverPath=/path/to/tsserver
+````
+
+### tsserver over TCP
+
+Some editors, like VSCode come bundled with `tsserver`.
+
+If you are building a boonmee plugin for VSCode, you can have boonmee connect to a remote instance:
+
+``` 
+./boonmee --tsserverPort=9433
+```
+
+This removes the dependency on NodeJS :)
+
 ## Usage
 
 Interaction with boonmee happens either via stdio (default) or TCP
@@ -68,12 +94,6 @@ If you would like to use boonmee directly from a Clojure project, bring in the f
 (async/put! (:req-ch client) {}) ;; Make a request
 (async/<!! (:resp-ch client)) ;; Wait until there is a response...
 (boonmee/stop client)
-```
-
-Note: when calling from Clojure directly, you will need `tsserver` on your `$PATH`:
-
-```
-npm install -g typescript
 ```
 
 ## ClojureScript 

@@ -15,7 +15,7 @@
 (defn client-config []
   (if-let [f (io/resource "tonal/node_modules/typescript/bin/tsserver")]
     (client/config {:tsserver/proc (.getFile f)})
-    (throw (RuntimeException. "tsserver not found on classpath. Please run `npm install`"))))
+    (throw (RuntimeException. "tsserver not found on classpath."))))
 
 (defmacro with-client [[sym opts] & body]
   `(let [opts#   ~opts
