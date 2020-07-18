@@ -60,8 +60,7 @@
                                               :message (.getMessage e)})))
               (recur)))}))
 
-(defmethod ig/halt-key!
-  :boonmee/stdio-client
+(defmethod ig/halt-key! :boonmee/stdio-client
   [_ {:keys [in out]}]
   (async/close! out)
   (.close in))
