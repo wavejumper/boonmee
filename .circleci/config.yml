@@ -31,7 +31,7 @@ jobs:
       - checkout:
           path: ~/repo
       - node/install
-      - run: npm install -g typescript
+      - run: sudo npm install -g typescript
       - restore_cache:
           key: boonmee-{{ checksum "project.clj" }}
       - run: ./scripts/test
