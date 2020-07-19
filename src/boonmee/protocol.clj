@@ -1,6 +1,11 @@
 (ns boonmee.protocol
   (:require [clojure.spec.alpha :as s]))
 
+;;;; General protocol notes
+;;;;
+;;;; :client.request/requestId should be an arbitrary unique string. Maybe one day there will be idempotence?
+;;;; impls (stdio/tcp) expect a stringified JSON obj of a single line
+
 ;;;; Client requests
 
 (defmulti client-request :command)
@@ -175,13 +180,3 @@
           :opt-un [:client.request/requestId
                    :client.response.definition/data
                    :client.response/message]))
-
-(comment
- (s/explain-str
-  :client/request
-  {:command    "completions"
-   :type       "request"
-   :request-id "foo"
-   :arguments  {:file   "/Users/thomascrowley/Code/clojure/boonmee/examples/tonal/src/tonal/core.cljs"
-                :line   6
-                :offset 6}}))
