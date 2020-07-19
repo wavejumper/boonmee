@@ -206,7 +206,7 @@
                                  :interop   (camel-case-interop interop)
                                  :requestId request-id}
                           message (assoc :message message)
-                          data (assoc :data data))]
+                          data (assoc :data (-> data (dissoc :start) (dissoc :end))))]
      :state            (update state :quickinfo dissoc seq-id)}))
 
 (defn parse-tsserver-resp

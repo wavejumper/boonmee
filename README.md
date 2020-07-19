@@ -263,14 +263,6 @@ For more examples, refer to the [integration tests](https://github.com/wavejumpe
   "data": {
     "kind": "property",
     "kindModifiers": "declare",
-    "start": {
-      "line": 2,
-      "offset": 6
-    },
-    "end": {
-      "line": 2,
-      "offset": 16
-    },
     "displayString": "(property) midiToFreq: (midi: number, tuning?: number) => number",
     "documentation": "",
     "tags": []
