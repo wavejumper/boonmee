@@ -7,19 +7,29 @@
   (:gen-class))
 
 (def cli-options
-  ;; An option with a required argument
-  [["-c" "--client client" "Specify client"
+  [["-c" "--client" "Specify client"
     :default "stdio"
     :validate [#{"stdio" "tcp"} "Must be either #{stdio tcp}"]]
 
-   ["-p" "--port PORT" "Port number"
+   ["-p" "--port" "Port number"
     :default 9457
     :parse-fn #(Integer/parseInt %)
     :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
 
+   ["-e" "--env" "JS Environment"
+    :default "browser"
+    :validate [#{"browser" "node"} "Must be either #{browser node}"]]
+
    ["-H" "--heartbeat" "TCP heartbeat (ms)"
     :default 30000
     :parse-fn #(Integer/parseInt %)]
+
+   ["-T" "--tsserver" "tsserver"
+    :default "tsserver"]
+
+   ["-Tp" "--tsserver-port" "tsserver port"
+    :parse-fn #(Integer/parseInt %)
+    :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
 
    ["-h" "--help"]])
 

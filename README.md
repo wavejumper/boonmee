@@ -6,7 +6,7 @@ It is an attempt to bring first-class 'intellisense' to ClojureScript projects.
 
 Goals:
 
-* For now, focus on interop - there are other great tools that lint Clojure code already (clj-kondo, joker etc)
+* For now, focus on interop - there are other great tools that lint Clojure code already ([clj-kondo](https://github.com/borkdude/clj-kondo), [joker](https://github.com/candid82/joker) etc)
 * Tooling-agnostic - you should be able to integrate boonmee into any IDE/editor tool
 
 Right now boonmee only works on ClojureScript code (my personal frustration), but there are plans to target the JVM as well.
@@ -38,9 +38,9 @@ And yet, most linting/editor tools (outside of Cursive for the JVM) consider the
 
 ## Installation
 
-Download a binary from the [releases]() page. 
+Download a binary from the [releases](https://github.com/wavejumper/boonmee/releases) page. 
 
-Binaries are built via [CircleCI]() - you can view the CI job to verify the SHA hash.
+Binaries are built via [CircleCI](https://app.circleci.com/pipelines/github/wavejumper/boonmee) - you can view the CI job to verify the SHA hash.
 
 Refer to the CI job on how to compile boonmee as a native image from source.
 
@@ -55,7 +55,7 @@ npm install -g typescript
 By default, boonmee will use the `tsserver` found on your `$PATH`. However, you can also specify a custom path:
 
 ```
-./boonmee --tsserver-path=/path/to/tsserver
+./boonmee --tsserver=/path/to/tsserver
 ````
 
 ### tsserver over TCP
@@ -130,7 +130,7 @@ Options are: `browser` (default) or `node`.
 
 ## Protocol
 
-Specs for the boonmee protocol can be found in the `boonmee.protocol` namespace.
+Specs for the boonmee protocol can be found in the [boonmee.protocol](https://github.com/wavejumper/boonmee/blob/master/src/boonmee/protocol.clj) namespace.
 
 ## Example RPC
 
@@ -143,7 +143,9 @@ Here's our example Clojure source code:
 (Midi/m )
 ```
 
-Our examples will be querying at loc `[4 8]` 
+Examples will relate to the [tonaljs](https://github.com/tonaljs/tonal/blob/master/packages/midi/index.ts) npm package
+
+For more examples, refer to the [integration tests](https://github.com/wavejumper/boonmee/tree/master/test/boonmee)
 
 ### Completions
 
