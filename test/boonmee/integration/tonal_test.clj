@@ -26,7 +26,7 @@
                               :init    (-> resp :data :init)
                               :version "1.0.0"}})))))))
 
-(deftest malformed-requests)
+#_(deftest malformed-requests)
 
 (deftest completions
   (with-client [client {:env "browser"}]

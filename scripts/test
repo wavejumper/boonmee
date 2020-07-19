@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd dev-resources
+
+cd tonal
+npm install
+cd ..
+cd react
+npm install
+cd ..
+cd browser
+npm install
+cd ..
+cd node
+npm install
+
+cd ../..
+lein with-profile +kaocha run -m kaocha.runner
