@@ -11,7 +11,21 @@
 (s/def :client.request/requestId string?)
 (s/def :client.request/type #{"request"})
 
+;;; Heartbeat
+;;;
+;;; A heartbeat is required for the TCP protocol (at a defined heartbeat-ms, default 30s)
+;;; You can send this client request to keep the TCP connection open
+
+(s/def :client.request.heartbeat/command #{"heartbeat"})
+
+(defmethod client-request "heartbeat" [_]
+  (s/keys :req-un [:client.request/requestId
+                   :client.request/type
+                   :client.request.heartbeat/command]))
+
 ;;; Info
+;;;
+;;; Returns info relating to the boonmee instance + connection
 
 (s/def :client.request.info/command #{"info"})
 
@@ -60,6 +74,20 @@
                    :client.request.definition/command
                    :client.request.completions/arguments]))
 
+;;; Flush
+;;;
+;;; Flushes (eg, cleans .boonmee tmp dir in project root) + close any open files on running tsserver
+
+(s/def :client.request.flush/command #{"flush"})
+
+(s/def :client.request.flush/arguments
+  (s/keys :req-un [:client.request.completions.arguments/projectRoot]))
+
+(defmethod client-request "flush" [_]
+  (s/keys :req-un [:client.request/requestId
+                   :client.request/type
+                   :client.request.flush/command
+                   :client.request.flush/arguments]))
 
 ;;;; Client responses
 
