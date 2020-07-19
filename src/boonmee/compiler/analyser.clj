@@ -89,6 +89,7 @@
       (namespace this)
       (when-let [sym ((:npm-syms ctx) (-> this namespace symbol))]
         {:fragment (-> this name symbol)
+         :global?  (= 'js sym)
          :sym      sym
          :usage    :method})
 
@@ -100,15 +101,17 @@
                   [(-> zip z/next z/sexpr) (if (= 'aget prev-sexpr) :property :method)]
                   [prev-sexpr :method])))]
         {:fragment fragment
+         :global?  false
          :sym      this
          :usage    (or usage :unknown)})
 
       (str/starts-with? (str this) ".")
       (let [next-zip   (z/next zip)
             next-sexpr (z/sexpr next-zip)]
-        (when-let [sym (interop next-sexpr ctx next-zip)]
+        (when-let [next-sym (interop next-sexpr ctx next-zip)]
           {:fragment this
-           :sym      sym
+           :sym      (:sym next-sym)
+           :global?  (:global? next-sym)
            :usage    (if (str/starts-with? (str this) ".-")
                        :property
                        :method)}))))
@@ -127,12 +130,14 @@
           prev-sexpr    (z/sexpr (z/prev zip))
           sym           (when (symbol? prev-sexpr)
                           (if (namespace prev-sexpr)
-                            ((:npm-syms ctx) (-> this namespace symbol))
-                            ((:npm-syms ctx) prev-sexpr)))]
+                            ((:npm-syms ctx) (-> prev-sexpr namespace symbol))
+                            ((:npm-syms ctx) prev-sexpr)))
+          global?      (and (symbol? prev-sexpr) (= "js" (namespace prev-sexpr)))]
       (cond
         (and (or aset-call? aget-call?) sym)
         {:fragment this
          :sym      sym
+         :global?  global?
          :usage    (if aget-call?
                      :property
                      :method)}
@@ -140,6 +145,7 @@
         require-form?
         {:fragment nil
          :sym      this
+         :global?  global?
          :usage    :require})))
 
   PersistentList

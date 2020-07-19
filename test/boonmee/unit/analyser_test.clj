@@ -1,4 +1,4 @@
-(ns boonmee.clojurescript-test
+(ns boonmee.unit.analyser-test
   (:require [clojure.test :refer :all]
             [boonmee.compiler.analyser :as ana]
             [boonmee.compiler.core :as compiler]))
@@ -41,7 +41,22 @@
   '((ns foo
       (:require ["react" :as react]))
 
-    (react/useState "xxx")))
+    (react/useState "xxx")
+
+    (.useState react "xxx")
+
+    (js/Docuemnt. "foo")
+
+    (js/Document.adoptNode)
+
+    (aget js/Document "head")
+
+    (.-head js/Document)
+
+    (aset js/Document "head" "foo")))
+
+
+
 
 (deftest analyse-ctx
   (is (= (select-keys (ana/analyse-string (pr-str form1)) [:npm-deps :npm-syms])
@@ -53,6 +68,7 @@
     (is (= {:fragment      nil
             :sym           "react"
             :usage         :require
+            :global?       false
             :prev-location [1 20]
             :next-location [1 29]}
            (ana/deduce-js-interop
@@ -63,6 +79,7 @@
     (is (= {:fragment      nil
             :sym           'react
             :usage         :unknown
+            :global?       false
             :prev-location [1 29]
             :next-location [1 42]}
            (ana/deduce-js-interop
@@ -73,6 +90,7 @@
     (is (= {:fragment      'useState
             :sym           'react
             :usage         :method
+            :global?       false
             :prev-location [1 42]
             :next-location [1 58]}
            (ana/deduce-js-interop
