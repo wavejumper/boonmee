@@ -155,9 +155,9 @@ Here's our example Clojure source code:
 (Midi/midiToFreq 400) ;; [7 10], for our quickinfo and definitions example
 ```
 
-Examples will relate to the [tonaljs](https://github.com/tonaljs/tonal/blob/master/packages/midi/index.ts) npm package
+Examples relate to the [tonaljs](https://github.com/tonaljs/tonal/blob/master/packages/midi/index.ts) npm package
 
-For more examples, refer to the [integration tests](https://github.com/wavejumper/boonmee/tree/master/test/boonmee/integration)
+For more examples, refer to boonmee's [integration tests](https://github.com/wavejumper/boonmee/tree/master/test/boonmee/integration)
 
 ### Completions
 
