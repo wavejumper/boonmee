@@ -112,7 +112,6 @@
 (defmethod client-response "info" [_]
   (s/keys :req-un [:client.response/type
                    :client.response/success
-                   :client.response/message
                    :client.request/requestId
                    :client.response.info/command
                    :client.response.info/data]))

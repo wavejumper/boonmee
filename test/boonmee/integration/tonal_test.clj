@@ -5,6 +5,27 @@
             [boonmee.test-util :refer [with-client request! response!]]
             [boonmee.protocol]))
 
+(deftest info
+  (with-client [client {:env "browser"}]
+    (testing "Successful request"
+      (let [req {:command   "info"
+                 :type      "request"
+                 :requestId "12345"}]
+        (is (s/valid? :client/request req))
+        (request! client req)
+        (let [resp (response! client 10000)]
+          (is (s/valid? :client/response resp))
+          (is (= resp
+                 {:type      "response"
+                  :command   "info"
+                  :requestId "12345"
+                  :success   true
+                  :data      {:seq     0
+                              :ctx     {:client :clojure
+                                        :env    "browser"}
+                              :init    (-> resp :data :init)
+                              :version "1.0.0"}})))))))
+
 (deftest malformed-requests)
 
 (deftest completions
