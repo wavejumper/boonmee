@@ -118,12 +118,12 @@
                :isGlobalCompletion      false
                :isMemberCompletion      true
                :isNewIdentifierLocation false}
-   :interop   {:fragments     ['useState]
-               :global?       false
-               :next-location [4 17]
-               :prev-location [4 1]
-               :sym           'React
-               :usage         :method}
+   :interop   {:fragments    ['useState]
+               :isGlobal     false
+               :nextLocation [4 17]
+               :prevLocation [4 1]
+               :sym          'React
+               :usage        :method}
    :requestId "1234567"
    :success   true
    :type      "response"})

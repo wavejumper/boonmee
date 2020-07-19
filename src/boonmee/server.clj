@@ -24,6 +24,16 @@
 (defn env [state]
   (-> state :ctx :env))
 
+(defn camel-case-interop
+  [interop]
+  (when interop
+    {:fragments    (:fragments interop)
+     :isGlobal     (:global? interop)
+     :prevLocation (:prev-location interop)
+     :nextLocation (:next-location interop)
+     :sym          (:sym interop)
+     :usage        (:usage interop)}))
+
 (defn handle-definition
   [state req]
   (let [id           (seq-id state)
@@ -177,7 +187,7 @@
     {:client/responses [(cond-> {:command   "completionInfo"
                                  :type      "response"
                                  :success   (:success resp)
-                                 :interop   interop
+                                 :interop   (camel-case-interop interop)
                                  :requestId request-id}
                           message (assoc :message message)
                           data (assoc :data data))]
@@ -193,7 +203,7 @@
     {:client/responses [(cond-> {:command   "quickinfo"
                                  :type      "response"
                                  :success   (:success resp)
-                                 :interop   interop
+                                 :interop   (camel-case-interop interop)
                                  :requestId request-id}
                           message (assoc :message message)
                           data (assoc :data data))]

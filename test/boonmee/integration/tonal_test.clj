@@ -45,12 +45,12 @@
           (is (= {:command   "completionInfo"
                   :type      "response"
                   :success   true
-                  :interop   {:fragments     ['m]
-                              :global?       false
-                              :prev-location [4 1]
-                              :next-location [7 1]
-                              :sym           'Midi
-                              :usage         :method}
+                  :interop   {:fragments    ['m]
+                              :isGlobal     false
+                              :prevLocation [4 1]
+                              :nextLocation [7 1]
+                              :sym          'Midi
+                              :usage        :method}
                   :data      {:isGlobalCompletion      false
                               :isMemberCompletion      true
                               :isNewIdentifierLocation false
@@ -76,8 +76,6 @@
                                                          :sortText      "0"}]}
                   :requestId "12345"}
                  resp)))))
-
-
 
     (testing "Unsuccessful request (no interop at loc)"
       (let [req {:command   "completions"
@@ -115,22 +113,22 @@
         (request! client req)
         (let [resp (response! client 10000)]
           (is (s/valid? :client/response resp))
-          (is (= {:command "quickinfo"
-                  :type "response"
-                  :success true
-                  :data {:kind "property"
-                         :kindModifiers "declare"
-                         :start {:line 2, :offset 6}
-                         :end {:line 2, :offset 16}
-                         :displayString "(property) midiToFreq: (midi: number, tuning?: number) => number"
-                         :documentation ""
-                         :tags []}
-                  :interop {:fragments ['midiToFreq]
-                            :sym 'Midi
-                            :global? false
-                            :usage :method
-                            :prev-location [7 1]
-                            :next-location [7 18]}
+          (is (= {:command   "quickinfo"
+                  :type      "response"
+                  :success   true
+                  :data      {:kind          "property"
+                              :kindModifiers "declare"
+                              :start         {:line 2, :offset 6}
+                              :end           {:line 2, :offset 16}
+                              :displayString "(property) midiToFreq: (midi: number, tuning?: number) => number"
+                              :documentation ""
+                              :tags          []}
+                  :interop   {:fragments    ['midiToFreq]
+                              :sym          'Midi
+                              :isGlobal     false
+                              :usage        :method
+                              :prevLocation [7 1]
+                              :nextLocation [7 18]}
                   :requestId "12345"}
                  resp)))))
 
@@ -182,6 +180,4 @@
         (request! client req)
         (let [resp (response! client 10000)]
           (is (s/valid? :client/response resp))
-          (println resp)))
-      ))
-  )
+          (println resp))))))

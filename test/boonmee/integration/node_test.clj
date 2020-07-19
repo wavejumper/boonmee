@@ -278,16 +278,15 @@
                :isGlobalCompletion      false
                :isMemberCompletion      true
                :isNewIdentifierLocation false}
-   :interop   {:fragments     ['process 'version]
-               :global?       true
-               :next-location [1 12]
-               :prev-location [1 1]
-               :sym           'js
-               :usage         :property}
+   :interop   {:fragments    ['process 'version]
+               :isGlobal     true
+               :nextLocation [1 12]
+               :prevLocation [1 1]
+               :sym          'js
+               :usage        :property}
    :requestId "1234567"
    :success   true
    :type      "response"})
-
 
 (deftest completions--globals
   (with-client [client {:env "node"}]

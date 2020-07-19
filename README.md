@@ -122,7 +122,7 @@ The [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/Definit
 
 ### Globals
 
-The `--env` switch tells boonmee which environment your Cljs project is targetting. 
+The `--env` switch tells boonmee which environment your ClojureScript project is targetting. 
 
 This enables intellisense for `js/...` globals. 
 
@@ -182,12 +182,12 @@ For more examples, refer to the [integration tests](https://github.com/wavejumpe
     "fragments": [
       "m"
     ],
-    "global?": false,
-    "prev-location": [
+    "isGlobal": false,
+    "prevLocation": [
       4,
       1
     ],
-    "next-location": [
+    "nextLocation": [
       7,
       1
     ],
