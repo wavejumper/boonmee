@@ -51,8 +51,8 @@ workflows:
     jobs:
       - deps
       - test:
-          - requires:
-              - deps
+          requires:
+            - deps
       - compile_linux:
-          - requires:
-              - deps
+          requires:
+            - deps
