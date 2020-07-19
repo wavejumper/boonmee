@@ -34,20 +34,14 @@
   (let [digest (.digest (MessageDigest/getInstance "SHA-256") (.getBytes string "UTF-8"))]
     (apply str (map (partial format "%02x") digest))))
 
-(defn project-root
-  [^File file]
-  (when (and file (.exists file))
-    (if (.exists (io/file file "package.json"))
-      (io/file file)
-      (when-let [parent (.getParent file)]
-        (recur (io/file parent))))))
-
 (defn spit-src
   [^File project-root {:keys [file-name compiled]}]
-  (when (and project-root (.exists project-root))
+  (if (and project-root (.exists project-root) (.isDirectory project-root))
     (let [out-dir  (io/file project-root ".boonmee")
           out-file (io/file out-dir file-name)]
       (io/make-parents out-dir)
       (io/make-parents out-file)
       (spit out-file (:js-out compiled))
-      out-file)))
+      out-file)
+    (throw (ex-info "project root does not exist or is not a directory"
+                    {:project-root project-root}))))

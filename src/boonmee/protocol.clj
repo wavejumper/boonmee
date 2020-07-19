@@ -24,11 +24,13 @@
 
 (s/def :client.request.completions/command #{"completions"})
 (s/def :client.request.completions.arguments/file string?)
+(s/def :client.request.completions.arguments/projectRoot string?)
 (s/def :client.request.completions.arguments/line nat-int?)
 (s/def :client.request.completions.arguments/offset nat-int?)
 
 (s/def :client.request.completions/arguments
   (s/keys :req-un [:client.request.completions.arguments/file
+                   :client.request.completions.arguments/projectRoot
                    :client.request.completions.arguments/line
                    :client.request.completions.arguments/offset]))
 

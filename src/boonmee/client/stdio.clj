@@ -74,7 +74,7 @@
   (.close reader))
 
 (defn config
-  [_]
+  [opts]
   {[:async/chan :chan/tsserver-resp-ch] {}
    [:async/chan :chan/tsserver-req-ch]  {}
    [:async/chan :chan/client-resp-ch]   {}
@@ -87,7 +87,8 @@
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
                                          :logger           (ig/ref :logger/file-logger)
-                                         :ctx              {:client :stdio}}
+                                         :ctx              {:client :stdio
+                                                            :env    (:env opts)}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
                                          :in             (ig/ref :boonmee/stdio-reader)

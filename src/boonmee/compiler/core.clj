@@ -68,7 +68,16 @@
   (-compile [this ctx]
     (when-let [sym (ana/deduce-js-interop ctx loc)]
       [{:cursor? cursor?
-        :js-out  (str (:sym sym) "." (:fragment sym))
+        :js-out  (if (:global? sym)
+                   (let [global (cond
+                                  (= "node" (:env ctx))
+                                  "global"
+                                  (= "browser" (:env ctx))
+                                  "window"
+                                  :else
+                                  "this")]
+                     (str/join "." (into [global] (:fragments sym))))
+                   (str/join "." (into [(:sym sym)] (:fragments sym))))
         :sym     sym
         :sym-ctx this
         :ctx     ctx}])))
@@ -123,8 +132,8 @@
         (str "_" hash ".ts"))))
 
 (defn compile
-  [^File file form]
-  (let [ctx       (ana/analyse-file file)
+  [env ^File file form]
+  (let [ctx       (ana/analyse-file env file)
         ext       (last (str/split (.getName file) #"\."))
         compiled  (compile-form ctx form)
         file-name (file-name (:ns ctx) ext (:js-out compiled))]
@@ -132,4 +141,5 @@
      :compiled  compiled
      :ext       ext
      :form      form
-     :file-name file-name}))
+     :file-name file-name
+     :env       env}))

@@ -8,14 +8,15 @@
 (deftest malformed-requests)
 
 (deftest completions
-  (with-client [client {}]
+  (with-client [client {:env "browser"}]
     (testing "Successful request"
       (let [req {:command   "completions"
                  :type      "request"
                  :requestId "12345"
-                 :arguments {:file   (.getFile (io/resource "tonal/src/tonal/core.cljs"))
-                             :line   4
-                             :offset 7}}]
+                 :arguments {:file        (.getFile (io/resource "tonal/src/tonal/core.cljs"))
+                             :projectRoot (.getFile (io/resource "tonal/src/tonal"))
+                             :line        4
+                             :offset      7}}]
         (is (s/valid? :client/request req))
         (request! client req)
         (let [resp (response! client 10000)]
@@ -54,14 +55,15 @@
       )))
 
 (deftest quickinfo
-  (with-client [client {}]
+  (with-client [client {:env "browser"}]
     (testing "Successful request"
       (let [req {:command   "quickinfo"
                  :type      "request"
                  :requestId "12345"
-                 :arguments {:file   (.getFile (io/resource "tonal/src/tonal/core.cljs"))
-                             :line   7
-                             :offset 10}}]
+                 :arguments {:file        (.getFile (io/resource "tonal/src/tonal/core.cljs"))
+                             :projectRoot (.getFile (io/resource "tonal/src/tonal"))
+                             :line        7
+                             :offset      10}}]
         (is (s/valid? :client/request req))
         (request! client req)
         (let [resp (response! client 10000)]
@@ -74,14 +76,15 @@
   )
 
 (deftest definition
-  (with-client [client {}]
+  (with-client [client {:env "browser"}]
     (testing "Successful request"
       (let [req {:command   "definition"
                  :type      "request"
                  :requestId "12345"
-                 :arguments {:file   (.getFile (io/resource "tonal/src/tonal/core.cljs"))
-                             :line   7
-                             :offset 10}}]
+                 :arguments {:file        (.getFile (io/resource "tonal/src/tonal/core.cljs"))
+                             :projectRoot (.getFile (io/resource "tonal/src/tonal"))
+                             :line        7
+                             :offset      10}}]
         (is (s/valid? :client/request req))
         (request! client req)
         (let [resp (response! client 10000)]

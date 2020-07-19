@@ -5,14 +5,12 @@
             [integrant.core :as ig]))
 
 (defn config
-  [overrides]
+  [opts]
   {[:async/chan :chan/tsserver-resp-ch] {}
    [:async/chan :chan/tsserver-req-ch]  {}
    [:async/chan :chan/client-resp-ch]   {}
    [:async/chan :chan/client-req-ch]    {}
-   :boonmee/tsserver                    {:proc             (get overrides :tsserver/proc "tsserver")
-                                         :proc-args        []
-                                         :tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
+   :boonmee/tsserver                    {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
                                          :logger           (ig/ref :logger/stdout-logger)}
    :boonmee/server                      {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
@@ -20,7 +18,8 @@
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
                                          :client-resp-ch   (ig/ref :chan/client-resp-ch)
                                          :logger           (ig/ref :logger/stdout-logger)
-                                         :ctx              {:client :clojure}}
+                                         :ctx              {:client :clojure
+                                                            :env    (:env opts)}}
    :logger/stdout-logger                {}})
 
 (defprotocol IClojureClient

@@ -20,17 +20,20 @@
 
 (def ->logger :logger)
 
+(defn env [state]
+  (-> state :ctx :env))
+
 (defn handle-definition
   [state req]
   (let [id           (seq-id state)
         file         (-> req :arguments :file io/file)
+        project-root (-> req :arguments :projectRoot io/file)
         loc          [(-> req :arguments :line)
                       (-> req :arguments :offset)]
         form         [(es6-import)
                       (es6-symbol {:loc     loc
                                    :cursor? true})]
-        compiled     (compiler/compile file form)
-        project-root (util/project-root file)
+        compiled     (compiler/compile (env state) file form)
         out-file     (util/spit-src project-root compiled)
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
@@ -48,8 +51,8 @@
         form         [(es6-import)
                       (es6-symbol {:loc     loc
                                    :cursor? true})]
-        compiled     (compiler/compile file form)
-        project-root (util/project-root file)
+        compiled     (compiler/compile (env state) file form)
+        project-root (-> req :arguments :projectRoot io/file)
         out-file     (util/spit-src project-root compiled)
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
@@ -67,8 +70,8 @@
         form         [(es6-import)
                       (es6-symbol {:loc     loc
                                    :cursor? true})]
-        compiled     (compiler/compile file form)
-        project-root (util/project-root file)
+        compiled     (compiler/compile (env state) file form)
+        project-root (-> req :arguments :projectRoot io/file)
         out-file     (util/spit-src project-root compiled)
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]

@@ -24,6 +24,7 @@
                                          :logger           (ig/ref :logger/stdout-logger)
                                          :ctx              {:client-id    (:client-id opts)
                                                             :heartbeat-ms (:heartbeat opts)
+                                                            :env          (:env opts)
                                                             :client       :tcp}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)

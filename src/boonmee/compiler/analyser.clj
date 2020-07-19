@@ -39,20 +39,21 @@
           deps))
 
 (defn analyse
-  [zip]
+  [env zip]
   (let [{:keys [ns deps]} (npm-deps zip)]
     {:npm-deps deps
      :npm-syms (into #{'js} (npm-syms deps))
      :ns       ns
-     :zip      zip}))
+     :zip      zip
+     :env      env}))
 
 (defn analyse-file
-  [^File f]
-  (analyse (z/of-file f {:track-position? true})))
+  [env ^File f]
+  (analyse env (z/of-file f {:track-position? true})))
 
 (defn analyse-string
-  [s]
-  (analyse (z/of-string s {:track-position? true})))
+  [env s]
+  (analyse env (z/of-string s {:track-position? true})))
 
 (defn location
   [{:keys [zip]} [line offset]]
