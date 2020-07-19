@@ -41,22 +41,31 @@
   '((ns foo
       (:require ["react" :as react]))
 
+    ;; method call
     (react/useState "xxx")
 
+    ;; method call
     (.useState react "xxx")
 
+    ;; constructor
     (js/Docuemnt. "foo")
 
+    ;; method call
     (js/Document.adoptNode)
 
+    ;; method call
+    (.adoptNode js/Document)
+
+    ;; get property
     (aget js/Document "head")
 
+    ;; get property
     (.-head js/Document)
 
-    (aset js/Document "head" "foo")))
+    ;; set property
+    (aset js/Document "head" "foo")
 
-
-
+    ))
 
 (deftest analyse-ctx
   (is (= (select-keys (ana/analyse-string (pr-str form1)) [:npm-deps :npm-syms])

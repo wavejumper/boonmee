@@ -5,7 +5,7 @@
           ))
 
 (defn clean-up-boonmee
-  [opts]
+  [_]
   (println "Clean up!"))
 
 (defn client-config []
