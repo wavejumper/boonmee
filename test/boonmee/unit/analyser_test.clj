@@ -1,7 +1,8 @@
 (ns boonmee.unit.analyser-test
   (:require [clojure.test :refer :all]
             [boonmee.compiler.analyser :as ana]
-            [boonmee.compiler.core :as compiler]))
+            [boonmee.compiler.core :as compiler]
+            [boonmee.test-util :as tu]))
 
 (defn compile-ns*
   [require-form]
@@ -65,16 +66,20 @@
     ;; set property
     (aset js/Document "head" "foo")
 
-    ))
+    ;; method call outside of form
+    react/createElement))
+
+(comment
+ (tu/locations form1))
 
 (deftest analyse-ctx
   (is (= (select-keys (ana/analyse-string (pr-str form1)) [:npm-deps :npm-syms])
          {:npm-deps '({:package-name "react" :args {:as react}})
-          :npm-syms #{'react}})))
+          :npm-syms #{'react 'js}})))
 
 (deftest deduce-js-interop
   (testing ":require ['react' ..."
-    (is (= {:fragment      nil
+    (is (= {:fragments     nil
             :sym           "react"
             :usage         :require
             :global?       false
@@ -85,9 +90,9 @@
             [1 27]))))
 
   (testing ":as 'react'"
-    (is (= {:fragment      nil
+    (is (= {:fragments     nil
             :sym           'react
-            :usage         :unknown
+            :usage         :require
             :global?       false
             :prev-location [1 29]
             :next-location [1 42]}
@@ -96,7 +101,7 @@
             [1 35]))))
 
   (testing "react/useState"
-    (is (= {:fragment      'useState
+    (is (= {:fragments     ['useState]
             :sym           'react
             :usage         :method
             :global?       false
@@ -104,4 +109,125 @@
             :next-location [1 58]}
            (ana/deduce-js-interop
             (ana/analyse-string (pr-str form1))
-            [1 45])))))
+            [1 45]))))
+
+  (testing "(.useState react ...)"
+    (is (= {:fragments     '[useState]
+            :sym           'react
+            :global?       false
+            :usage         :method
+            :prev-location [1 65]
+            :next-location [1 76]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 67]))))
+
+  (testing "(js/Document. ...)"
+    (is (= {:fragments     ['Docuemnt]
+            :global?       true
+            :sym           'js
+            :usage         :constructor
+            :prev-location [1 82]
+            :next-location [1 90]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 90]))))
+
+  (testing "(js/Document.adoptNode)"
+    (is (= {:fragments     ['Document 'adoptNode]
+            :global?       true
+            :sym           'js
+            :usage         :method
+            :prev-location [1 110]
+            :next-location [1 134]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 117]))))
+
+  (testing "(.adoptNode js/Document)"
+    (is (= {:fragments     '[Document adoptNode]
+            :sym           'js
+            :global?       true
+            :usage         :method
+            :prev-location [1 111]
+            :next-location [1 135]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 135])))
+
+    (is (= {:fragments     '[Document adoptNode]
+            :sym           'js
+            :global?       true
+            :usage         :method
+            :prev-location [1 135]
+            :next-location [1 159]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 147]))))
+
+  (testing "(aget js/Document head)"
+    (testing "aget"
+      (is (= {:fragments     ['Document 'head]
+              :sym           'js
+              :global?       true
+              :usage         :property
+              :prev-location [1 146]
+              :next-location [1 160]}
+             (ana/deduce-js-interop
+              (ana/analyse-string (pr-str form1))
+              [1 160]))))
+
+    (testing "js/Document"
+      (is (= {:fragments     ['Document 'head]
+              :sym           'js
+              :global?       true
+              :usage         :property
+              :prev-location [1 159]
+              :next-location [1 165]}
+             (ana/deduce-js-interop
+              (ana/analyse-string (pr-str form1))
+              [1 165]))))
+
+    (testing "head"
+      (is (= {:fragments     ['Document 'head]
+              :sym           'js
+              :global?       true
+              :usage         :property
+              :prev-location [1 160]
+              :next-location [1 177]}
+             (ana/deduce-js-interop
+              (ana/analyse-string (pr-str form1))
+              [1 177])))))
+
+  (testing "(.-head js/Dcoument)"
+    (is (= {:fragments ['Document 'head]
+            :sym 'js
+            :global? true
+            :usage :property
+            :prev-location [1 185]
+            :next-location [1 193]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 187]))))
+
+  (testing "(aset js/Document head)"
+    (is (= {:fragments     ['Document 'head]
+            :sym           'js
+            :global?       true
+            :usage         :property
+            :prev-location [1 193]
+            :next-location [1 207]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 207]))))
+
+  (testing "method called outside of form"
+    (is (= {:fragments     ['createElement]
+            :sym           'react
+            :global?       false
+            :usage         :property
+            :prev-location [1 231]
+            :next-location [1 238]}
+           (ana/deduce-js-interop
+            (ana/analyse-string (pr-str form1))
+            [1 239])))))

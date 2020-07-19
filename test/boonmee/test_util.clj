@@ -2,7 +2,7 @@
   (:require [boonmee.client.clojure :as client]
             [clojure.core.async :as async]
             [clojure.java.io :as io]
-          ))
+            [rewrite-clj.zip :as z]))
 
 (defn clean-up-boonmee
   [_]
@@ -33,3 +33,18 @@
 (defn request!
   [client msg]
   (async/put! (:req-ch client) msg))
+
+
+(defn locations
+  [form]
+  (let [zip (z/of-string (pr-str form) {:track-position? true})]
+    (loop [locs [[(z/sexpr zip) (z/position zip)]]
+           zip  zip]
+      (let [next-zip (z/next zip)
+            pos      (z/position next-zip)]
+        (if
+         (z/end? next-zip)
+          locs
+
+          (recur (conj locs [(z/sexpr next-zip) pos])
+                 next-zip))))))

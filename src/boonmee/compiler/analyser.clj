@@ -42,7 +42,7 @@
   [zip]
   (let [{:keys [ns deps]} (npm-deps zip)]
     {:npm-deps deps
-     :npm-syms (set (npm-syms deps))
+     :npm-syms (into #{'js} (npm-syms deps))
      :ns       ns
      :zip      zip}))
 
@@ -82,39 +82,126 @@
 (defprotocol IInterop
   (interop [this ctx zip]))
 
+(defn fragment->sym
+  [fragment]
+  (when-let [syms (some-> fragment
+                          str
+                          (str/replace-first #"\.-" "")
+                          (str/split #"\."))]
+    (into [] (comp (remove str/blank?)
+                   (map symbol))
+          syms)))
+
+(defn interpret-arg
+  [ctx arg]
+  (cond
+    (symbol? arg)
+    (let [sym      (symbol (or (namespace arg) (name arg)))
+          interop? ((:npm-syms ctx) sym)]
+      {:type     :symbol
+       :interop? interop?
+       :sym      sym
+       :value    arg
+       :name     (name arg)
+       :ns       (namespace arg)})
+
+    (string? arg)
+    {:type  :string
+     :value arg}
+
+    (keyword? arg)
+    {:type  :keyword
+     :value arg}))
+
+(defn interpret-list
+  [ctx parent]
+  (let [first-arg        (-> parent z/next z/sexpr)
+        second-arg       (-> parent z/next z/next z/sexpr)
+        third-arg        (-> parent z/next z/next z/next z/sexpr)
+        first-arg-intrp  (interpret-arg ctx first-arg)
+        second-arg-intrp (interpret-arg ctx second-arg)
+        third-arg-intrp  (interpret-arg ctx third-arg)]
+    (cond
+      (:interop? first-arg-intrp)
+      {:fragments (when (:ns first-arg-intrp)
+                    (fragment->sym (:name first-arg-intrp)))
+       :sym       (:sym first-arg-intrp)
+       :global?   (= 'js (:sym first-arg-intrp))
+       :usage     (if (str/ends-with? (:name first-arg-intrp) ".")
+                    :constructor
+                    :method)}
+
+      (and (= :symbol (:type first-arg-intrp)) (:interop? second-arg-intrp))
+      (let [aset?            (= 'aset (:value first-arg-intrp))
+            aget?            (= 'aget (:value first-arg-intrp))
+            property-use?    (or (str/starts-with? (:name first-arg-intrp) ".-")
+                                 aget? aset?)
+            method-use?      (and (not property-use?)
+                                  (str/starts-with? (:name first-arg-intrp) "."))
+
+            second-ns        (:ns second-arg-intrp)
+            second-fragments (when second-ns
+                               (fragment->sym (:name second-arg-intrp)))
+            sym              (:sym second-arg-intrp)]
+        {:fragments (cond
+                      (or aset? aget?)
+                      (vec (distinct (into second-fragments (fragment->sym (:value third-arg-intrp)))))
+
+                      (or property-use? method-use?)
+                      (vec (distinct (into second-fragments (fragment->sym (:value first-arg-intrp)))))
+
+                      :else
+                      (fragment->sym (:name second-arg-intrp)))
+         :sym       sym
+         :global?   (= 'js sym)
+         :usage     (cond
+                      property-use? :property
+                      method-use? :method
+                      :else :unknown)}))))
+
+(defn interpret-vector
+  [ctx parent]
+  (let [first-arg        (-> parent z/next z/sexpr)
+        second-arg       (-> parent z/next z/next z/sexpr)
+        first-arg-intrp  (interpret-arg ctx first-arg)
+        second-arg-intrp (interpret-arg ctx second-arg)]
+    (when (and (= :string (:type first-arg-intrp))
+               (or (nil? second-arg)
+                   (#{:as :refer :default} (:value second-arg-intrp)))
+               ((:npm-syms ctx) (symbol (:value first-arg-intrp))))
+      {:fragments nil
+       :sym       (symbol (:value first-arg-intrp))
+       :global?   false
+       :usage     :require})))
+
+(defn interpret-symbol
+  [ctx arg]
+  (let [ns       (namespace arg)
+        name     (name arg)
+        sym      (symbol (or ns name))
+        interop? ((:npm-syms ctx) sym)]
+    (when interop?
+      {:fragments (when ns
+                    (fragment->sym name))
+       :sym       sym
+       :global?   (= 'js sym)
+       :usage     :property})))
+
 (extend-protocol IInterop
   Symbol
   (interop [this ctx zip]
-    (cond
-      (namespace this)
-      (when-let [sym ((:npm-syms ctx) (-> this namespace symbol))]
-        {:fragment (-> this name symbol)
-         :global?  (= 'js sym)
-         :sym      sym
-         :usage    :method})
+    (let [parent       (z/up zip)
+          parent-sexpr (z/sexpr parent)]
+      (cond
+        ;; fn invocation...
+        (list? parent-sexpr)
+        (or (interpret-list ctx parent)
+            ;; top-level symbol
+            (interpret-symbol ctx this))
 
-      (contains? (:npm-syms ctx) this)
-      (let [[fragment usage]
-            (let [prev-sexpr (-> zip z/prev z/sexpr)]
-              (when (symbol? prev-sexpr)
-                (if (#{'aget 'aset} prev-sexpr)
-                  [(-> zip z/next z/sexpr) (if (= 'aget prev-sexpr) :property :method)]
-                  [prev-sexpr :method])))]
-        {:fragment fragment
-         :global?  false
-         :sym      this
-         :usage    (or usage :unknown)})
-
-      (str/starts-with? (str this) ".")
-      (let [next-zip   (z/next zip)
-            next-sexpr (z/sexpr next-zip)]
-        (when-let [next-sym (interop next-sexpr ctx next-zip)]
-          {:fragment this
-           :sym      (:sym next-sym)
-           :global?  (:global? next-sym)
-           :usage    (if (str/starts-with? (str this) ".-")
-                       :property
-                       :method)}))))
+        ;; for require forms
+        (vector? parent-sexpr)
+        (interpret-vector ctx parent))))
 
   String
   (interop [this ctx zip]
@@ -124,29 +211,18 @@
                                        ;; I don't want to bring in cljs as a dep :'(
                                        [:require (update parent 0 #(when (string? %) (symbol %)))])
                              (-> parent first string?))
-          fn-inv        (some-> zip z/prev z/prev z/sexpr)
-          aset-call?    (= 'aset fn-inv)
-          aget-call?    (= 'aget fn-inv)
-          prev-sexpr    (z/sexpr (z/prev zip))
-          sym           (when (symbol? prev-sexpr)
-                          (if (namespace prev-sexpr)
-                            ((:npm-syms ctx) (-> prev-sexpr namespace symbol))
-                            ((:npm-syms ctx) prev-sexpr)))
-          global?      (and (symbol? prev-sexpr) (= "js" (namespace prev-sexpr)))]
+          prev-zip      (z/prev zip)
+          prev-sexpr    (z/sexpr prev-zip)]
       (cond
-        (and (or aset-call? aget-call?) sym)
-        {:fragment this
-         :sym      sym
-         :global?  global?
-         :usage    (if aget-call?
-                     :property
-                     :method)}
-
         require-form?
-        {:fragment nil
-         :sym      this
-         :global?  global?
-         :usage    :require})))
+        {:fragments nil
+         :sym       this
+         :global?   false
+         :usage     :require}
+
+        ;; for aget/aset etc
+        (symbol? prev-sexpr)
+        (interop prev-sexpr ctx prev-zip))))
 
   PersistentList
   (interop [_ ctx zip]

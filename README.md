@@ -40,7 +40,7 @@ And yet, most linting/editor tools (outside of Cursive for the JVM) consider the
 
 Download a binary from the [releases](https://github.com/wavejumper/boonmee/releases) page. 
 
-Binaries are built via [CircleCI](https://app.circleci.com/pipelines/github/wavejumper/boonmee) - you can view the CI job to verify the SHA hash.
+Binaries get built via [CircleCI](https://app.circleci.com/pipelines/github/wavejumper/boonmee) - you can view the CI job to verify the SHA hash.
 
 Refer to the CI job on how to compile boonmee as a native image from source.
 
@@ -161,6 +161,7 @@ For more examples, refer to the [integration tests](https://github.com/wavejumpe
   "type": "request",
   "requestId": "12345",
   "arguments": {
+    "projectRoot": "/path/to/project/root",
     "file": "/path/to/core.cljs",
     "line": 4,
     "offset": 7
