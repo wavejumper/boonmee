@@ -147,11 +147,14 @@ Here's our example Clojure source code:
   (:require ["@tonaljs/tonal" :refer [Midi]]))
 
 (Midi/m )
+
+
+(Midi/midiToFreq 400)
 ```
 
 Examples will relate to the [tonaljs](https://github.com/tonaljs/tonal/blob/master/packages/midi/index.ts) npm package
 
-For more examples, refer to the [integration tests](https://github.com/wavejumper/boonmee/tree/master/test/boonmee)
+For more examples, refer to the [integration tests](https://github.com/wavejumper/boonmee/tree/master/test/boonmee/integration)
 
 ### Completions
 
