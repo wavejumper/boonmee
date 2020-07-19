@@ -110,11 +110,15 @@ If you are a [shadow-cljs](http://shadow-cljs.org/) user, using boonmee should b
 
 boonmee's functionality comes from the [TypeScript](https://www.typescriptlang.org/) compiler. 
 
-That means a `@types/*` package should be installed as a dev dependency, if the library you require is written in vanllia JavaScript (a rarity these days!):
+That means a `@types/*` package should be installed as a dev dependency, if the library you require is written in vanllia JavaScript:
 
 ```
 npm install --save-dev @types/react
 ```
+
+The [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) repo has many type definitions for popular npm dependencies.
+
+**TODO**: infer/suggest possible `@types/` stubs.
 
 ### Globals
 
