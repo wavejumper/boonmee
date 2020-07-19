@@ -303,5 +303,4 @@
         (request! client req)
         (let [resp (response! client 10000)]
           (is (s/valid? :client/response resp))
-          ;; there's way too much going in js/Document...
           (is (= resp process-resp)))))))
