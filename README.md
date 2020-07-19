@@ -295,11 +295,61 @@ For more examples, refer to the [integration tests](https://github.com/wavejumpe
 #### Request
 
 ```javascript 
-{}
+{
+  "command": "definition",
+  "type": "request",
+  "requestId": "12345",
+  "arguments": {
+    "file": "/path/to/core/core.cljs",
+    "projectRoot": "/path/to/project/root",
+    "line": 7,
+    "offset": 10
+  }
+}
 ```
 
 #### Response
 
 ```javascript
-{}
+{
+  "command": "definition",
+  "data": {
+    "contextEnd": {
+      "line": 69,
+      "offset": 35
+    },
+    "contextStart": {
+      "line": 69,
+      "offset": 5
+    },
+    "end": {
+      "line": 69,
+      "offset": 15
+    },
+    "file": "/path/to/tonal/node_modules/@tonaljs/midi/dist/index.d.ts",
+    "start": {
+      "line": 69,
+      "offset": 5
+    }
+  },
+  "interop": {
+    "fragments": [
+      "midiToFreq"
+    ],
+    "isGlobal": false,
+    "nextLocation": [
+      7,
+      18
+    ],
+    "prevLocation": [
+      7,
+      1
+    ],
+    "sym": "Midi",
+    "usage": "method"
+  },
+  "requestId": "12345",
+  "success": true,
+  "type": "response"
+}
 ```
