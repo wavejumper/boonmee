@@ -161,6 +161,20 @@
                    :client.response.quickinfo/data
                    :client.response/message]))
 
+;;; Definition response
+
+(s/def :client.response.definition/command #{"definition"})
+;; TODO: write spec
+(s/def :client.response.definition/data map?)
+
+(defmethod client-response "definition" [_]
+  (s/keys :req-un [:client.response/type
+                   :client.response/success
+                   :client.response.definition/command
+                   :client.response/interop]
+          :opt-un [:client.request/requestId
+                   :client.response.definition/data
+                   :client.response/message]))
 
 (comment
  (s/explain-str

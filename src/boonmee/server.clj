@@ -44,16 +44,23 @@
         form         [(es6-import)
                       (es6-symbol {:loc     loc
                                    :cursor? true})]
-        compiled     (compiler/compile (env state) file form)
-        out-file     (util/spit-src project-root compiled)
-        js-line      (-> compiled :compiled :line)
-        js-offset    (-> compiled :compiled :offset)]
-
-    {:tsserver/requests [(tsserver.api/open 0 out-file)
-                         (tsserver.api/definition 0 out-file js-line js-offset)]
-     :state             (-> state
-                            (assoc-in [:definition id] {:req req :compiled compiled})
-                            (update :files conj out-file))}))
+        compiled     (compiler/compile (env state) file form)]
+    (if (-> compiled :compiled :cursor :sym)
+      (let [out-file  (util/spit-src project-root compiled)
+            js-line   (-> compiled :compiled :line)
+            js-offset (-> compiled :compiled :offset)]
+        {:tsserver/requests [(tsserver.api/open 0 out-file)
+                             (tsserver.api/definition 0 out-file js-line js-offset)]
+         :state             (-> state
+                                (assoc-in [:definition id] {:req req :compiled compiled})
+                                (update :files conj out-file))})
+      {:state state
+       :client/responses [{:command   "definition"
+                           :interop   nil
+                           :success   false
+                           :type      "response"
+                           :message   (str "No interop found at " loc)
+                           :requestId (:requestId req)}]})))
 
 (defn handle-quick-info
   [state req]
@@ -187,10 +194,10 @@
     {:client/responses [(cond-> {:command   "completionInfo"
                                  :type      "response"
                                  :success   (:success resp)
-                                 :interop   (camel-case-interop interop)
-                                 :requestId request-id}
+                                 :interop   (camel-case-interop interop)}
                           message (assoc :message message)
-                          data (assoc :data data))]
+                          data (assoc :data data)
+                          request-id (assoc :requestId request-id))]
      :state            (update state :completions dissoc seq-id)}))
 
 (defmethod handle-tsserver-response ["response" "quickinfo"]
@@ -203,11 +210,27 @@
     {:client/responses [(cond-> {:command   "quickinfo"
                                  :type      "response"
                                  :success   (:success resp)
-                                 :interop   (camel-case-interop interop)
-                                 :requestId request-id}
+                                 :interop   (camel-case-interop interop)}
                           message (assoc :message message)
-                          data (assoc :data (-> data (dissoc :start) (dissoc :end))))]
+                          data (assoc :data (-> data (dissoc :start) (dissoc :end)))
+                          request-id (assoc :requestId request-id))]
      :state            (update state :quickinfo dissoc seq-id)}))
+
+(defmethod handle-tsserver-response ["response" "definition"]
+  [state resp]
+  (let [seq-id     (:request_seq resp)
+        request-id (get-in state [:definition seq-id :req :requestId])
+        interop    (get-in state [:definition seq-id :compiled :compiled :cursor :sym])
+        message    (:message resp)
+        data       (first (:body resp))]
+    {:client/responses [(cond-> {:command   "definition"
+                                 :type      "response"
+                                 :success   (:success resp)
+                                 :interop   (camel-case-interop interop)}
+                          message (assoc :message message)
+                          data (assoc :data data)
+                          request-id (assoc :requestId request-id))]
+     :state            (update state :definition dissoc seq-id)}))
 
 (defn parse-tsserver-resp
   [resp]

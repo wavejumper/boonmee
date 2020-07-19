@@ -146,10 +146,10 @@ Here's our example Clojure source code:
 (ns tonal.core
   (:require ["@tonaljs/tonal" :refer [Midi]]))
 
-(Midi/m )
+(Midi/m ) ;; [4 7], left incomplete for our completions example
 
 
-(Midi/midiToFreq 400)
+(Midi/midiToFreq 400) ;; [7 10], for our quickinfo and definitions example
 ```
 
 Examples will relate to the [tonaljs](https://github.com/tonaljs/tonal/blob/master/packages/midi/index.ts) npm package

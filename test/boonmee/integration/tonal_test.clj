@@ -162,7 +162,26 @@
         (request! client req)
         (let [resp (response! client 10000)]
           (is (s/valid? :client/response resp))
-          (println resp))))
+          (is (= resp
+                 {:command   "definition"
+                  :data      {:contextEnd   {:line   69
+                                             :offset 35}
+                              :contextStart {:line   69
+                                             :offset 5}
+                              :end          {:line   69
+                                             :offset 15}
+                              :file         (.getFile (io/resource "tonal/node_modules/@tonaljs/midi/dist/index.d.ts"))
+                              :start        {:line   69
+                                             :offset 5}}
+                  :interop   {:fragments    ['midiToFreq]
+                              :isGlobal     false
+                              :nextLocation [7 18]
+                              :prevLocation [7 1]
+                              :sym          'Midi
+                              :usage        :method}
+                  :requestId "12345"
+                  :success   true
+                  :type      "response"})))))
 
     (testing "Unsuccessful request (no interop at loc)"
       (let [req {:command   "definition"
@@ -170,10 +189,16 @@
                  :requestId "123456"
                  :arguments {:file        (.getFile (io/resource "tonal/src/tonal/core.cljs"))
                              :projectRoot (.getFile (io/resource "tonal"))
-                             :line        4
+                             :line        11
                              :offset      1}}]
         (is (s/valid? :client/request req))
         (request! client req)
         (let [resp (response! client 10000)]
           (is (s/valid? :client/response resp))
-          (println resp))))))
+          (is (= resp
+                 {:command   "definition"
+                  :interop   nil
+                  :success   false
+                  :type      "response"
+                  :message   "No interop found at [11 1]"
+                  :requestId "123456"})))))))
