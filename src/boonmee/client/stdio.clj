@@ -8,12 +8,6 @@
   (:import (java.io InputStream PrintStream PrintWriter InputStreamReader OutputStreamWriter)
            (java.nio.charset StandardCharsets)))
 
-(defn init-stdio-client!
-  [client-req-ch]
-  (async/put! client-req-ch {:command    "info"
-                             :type       "request"
-                             :request-id "0"}))
-
 (defprotocol StdOut
   (print-out [this m]))
 
@@ -36,7 +30,6 @@
 (defmethod ig/init-key
   :boonmee/stdio-client
   [_ {:keys [client-req-ch client-resp-ch in out]}]
-  (init-stdio-client! client-req-ch)
   (let [ts (atom (System/currentTimeMillis))]
     {:ts  ts
      :in  (util/line-handler [line in]
