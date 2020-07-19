@@ -97,8 +97,6 @@
                   :requestId "123456"
                   :message   "No interop found at [12 1]"})))))))
 
-
-
 (deftest quickinfo
   (with-client [client {:env "browser"}]
     (testing "Successful request"

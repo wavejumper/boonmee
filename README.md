@@ -240,13 +240,59 @@ For more examples, refer to the [integration tests](https://github.com/wavejumpe
 #### Request
 
 ```javascript 
-{}
+{
+  "command": "quickinfo",
+  "type": "request",
+  "requestId": "12345",
+  "arguments": {
+    "file": "/path/to/core.cljs",
+    "projectRoot": "/path/to/root",
+    "line": 7,
+    "offset": 10
+  }
+}
 ```
 
 #### Response
 
 ```javascript
-{}
+{
+  "command": "quickinfo",
+  "type": "response",
+  "success": true,
+  "data": {
+    "kind": "property",
+    "kindModifiers": "declare",
+    "start": {
+      "line": 2,
+      "offset": 6
+    },
+    "end": {
+      "line": 2,
+      "offset": 16
+    },
+    "displayString": "(property) midiToFreq: (midi: number, tuning?: number) => number",
+    "documentation": "",
+    "tags": []
+  },
+  "interop": {
+    "fragments": [
+      "midiToFreq"
+    ],
+    "sym": "Midi",
+    "isGlobal": false,
+    "usage": "method",
+    "prevLocation": [
+      7,
+      1
+    ],
+    "nextLocation": [
+      7,
+      18
+    ]
+  },
+  "requestId": "12345"
+}
 ```
 
 ### Definitions
