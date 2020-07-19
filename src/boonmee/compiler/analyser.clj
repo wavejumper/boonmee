@@ -238,8 +238,9 @@
 (defn deduce-js-interop
   [ctx loc]
   (when-let [zip (location ctx loc)]
-    (some-> zip
-            z/sexpr
-            (interop ctx zip)
-            (assoc :prev-location (-> zip z/prev z/position))
-            (assoc :next-location (-> zip z/next z/position)))))
+    (when (= (first loc) (first (z/position zip)))
+      (some-> zip
+              z/sexpr
+              (interop ctx zip)
+              (assoc :prev-location (-> zip z/prev z/position))
+              (assoc :next-location (-> zip z/next z/position))))))

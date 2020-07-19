@@ -8,6 +8,12 @@
   (:import (java.io InputStreamReader InputStream)
            (java.nio.charset StandardCharsets)))
 
+(defmethod ig/init-key :boonmee/tsserver-init-events
+  [_ {:keys [tsserver-req-ch]}]
+
+
+  )
+
 (defmethod ig/init-key :boonmee/tsserver
   [_ {:keys [tsserver-resp-ch tsserver-req-ch proc proc-args logger]
       :or   {proc "tsserver"}}]

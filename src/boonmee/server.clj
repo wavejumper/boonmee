@@ -68,24 +68,32 @@
 
 (defn handle-completions
   [state req]
-  (let [id           (seq-id state)
-        file         (-> req :arguments :file io/file)
-        loc          [(-> req :arguments :line)
-                      (-> req :arguments :offset)]
-        form         [(es6-import)
-                      (es6-symbol {:loc     loc
-                                   :cursor? true})]
-        compiled     (compiler/compile (env state) file form)
-        project-root (-> req :arguments :projectRoot io/file)
-        out-file     (util/spit-src project-root compiled)
-        js-line      (-> compiled :compiled :line)
-        js-offset    (-> compiled :compiled :offset)]
+  (let [id       (seq-id state)
+        file     (-> req :arguments :file io/file)
+        loc      [(-> req :arguments :line)
+                  (-> req :arguments :offset)]
+        form     [(es6-import)
+                  (es6-symbol {:loc     loc
+                               :cursor? true})]
+        compiled (compiler/compile (env state) file form)]
+    (if (-> compiled :compiled :cursor :sym)
+      (let [project-root (-> req :arguments :projectRoot io/file)
+            out-file     (util/spit-src project-root compiled)
+            js-line      (-> compiled :compiled :line)
+            js-offset    (-> compiled :compiled :offset)]
+        {:tsserver/requests [(tsserver.api/open id out-file)
+                             (tsserver.api/completions id out-file js-line js-offset)]
+         :state             (-> state
+                                (assoc-in [:completions id] {:req req :compiled compiled})
+                                (update :files conj out-file))})
 
-    {:tsserver/requests [(tsserver.api/open id out-file)
-                         (tsserver.api/completions id out-file js-line js-offset)]
-     :state             (-> state
-                            (assoc-in [:completions id] {:req req :compiled compiled})
-                            (update :files conj out-file))}))
+      {:state            state
+       :client/responses [{:command   "completionInfo"
+                           :type      "response"
+                           :success   false
+                           :interop   nil
+                           :requestId (:requestId req)
+                           :message   (str "No interop found at " loc)}]})))
 
 (defmulti
  handle-client-request
@@ -164,15 +172,32 @@
   (let [seq-id     (:request_seq resp)
         request-id (get-in state [:completions seq-id :req :requestId])
         interop    (get-in state [:completions seq-id :compiled :compiled :cursor :sym])
-        message    (:message resp)]
+        message    (:message resp)
+        data       (:body resp)]
     {:client/responses [(cond-> {:command   "completionInfo"
                                  :type      "response"
                                  :success   (:success resp)
-                                 :data      (:body resp)
                                  :interop   interop
                                  :requestId request-id}
-                          message (assoc :message message))]
+                          message (assoc :message message)
+                          data (assoc :data data))]
      :state            (update state :completions dissoc seq-id)}))
+
+(defmethod handle-tsserver-response ["response" "quickinfo"]
+  [state resp]
+  (let [seq-id     (:request_seq resp)
+        request-id (get-in state [:quickinfo seq-id :req :requestId])
+        interop    (get-in state [:quickinfo seq-id :compiled :compiled :cursor :sym])
+        message    (:message resp)
+        data       (:body resp)]
+    {:client/responses [(cond-> {:command   "quickinfo"
+                                 :type      "response"
+                                 :success   (:success resp)
+                                 :interop   interop
+                                 :requestId request-id}
+                          message (assoc :message message)
+                          data (assoc :data data))]
+     :state            (update state :quickinfo dissoc seq-id)}))
 
 (defn parse-tsserver-resp
   [resp]

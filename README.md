@@ -129,8 +129,10 @@ This enables intellisense for `js/...` globals.
 Options are: `browser` (default) or `node`.
 
 ``` 
-./boonmee --env=browser
+./boonmee --env=node
 ```
+
+**Note** for the `node` env you will also need to `npm install --saveDev @types/node`
 
 ## Protocol
 

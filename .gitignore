@@ -17,3 +17,5 @@ node_modules/
 boonmee
 boonmee.log
 **.DS_Store
+**node_modules/
+**.boonmee/

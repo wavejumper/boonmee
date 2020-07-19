@@ -95,6 +95,8 @@
 (s/def :client.response/type #{"response"})
 (s/def :client.response/success boolean?)
 (s/def :client.response/message string?)
+;; TODO: write spec
+(s/def :client.response/interop (s/nilable map?))
 
 ;;; Info
 
@@ -133,16 +135,32 @@
 (s/def :client.response.completionInfo/data string?)
 ;; TODO: write spec
 (s/def :client.response.completionInfo/data map?)
-(s/def :client.response.completionInfo/interop (s/nilable map?))
+
 
 (defmethod client-response "completionInfo" [_]
   (s/keys :req-un [:client.response/type
                    :client.response/success
-                   :client.response.completionInfo/command]
+                   :client.response.completionInfo/command
+                   :client.response/interop]
           :opt-un [:client.request/requestId
                    :client.response.completionInfo/data
-                   :client.response.completionInfo/interop
                    :client.response/message]))
+
+;;; Quickinfo
+
+(s/def :client.response.quickinfo/command #{"quickinfo"})
+;; TODO: write spec
+(s/def :client.response.quickinfo/data map?)
+
+(defmethod client-response "quickinfo" [_]
+  (s/keys :req-un [:client.response/type
+                   :client.response/success
+                   :client.response.quickinfo/command
+                   :client.response/interop]
+          :opt-un [:client.request/requestId
+                   :client.response.quickinfo/data
+                   :client.response/message]))
+
 
 (comment
  (s/explain-str

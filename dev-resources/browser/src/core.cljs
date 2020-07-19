@@ -1,0 +1,1 @@
+(.-href js/location)
