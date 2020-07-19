@@ -1,12 +1,16 @@
 (ns boonmee.test-util
   (:require [boonmee.client.clojure :as client]
             [clojure.core.async :as async]
-            [clojure.java.io :as io]
             [rewrite-clj.zip :as z]))
 
 (defn clean-up-boonmee
-  [_]
-  (println "Clean up!"))
+  [client]
+  (let [req-ch (:req-ch client)]
+    (async/>!! req-ch {:command   "flush"
+                       :type      "request"
+                       :requestId (str (gensym "flush"))})
+
+    (client/stop client)))
 
 (defn client-config
   [opts]
@@ -19,8 +23,7 @@
        (let [~sym client#]
          ~@body)
        (finally
-         (client/stop client#)
-         (clean-up-boonmee opts#)))))
+         (clean-up-boonmee client#)))))
 
 (defn response!
   [client timeout-ms]

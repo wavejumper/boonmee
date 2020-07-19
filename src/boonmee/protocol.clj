@@ -76,18 +76,14 @@
 
 ;;; Flush
 ;;;
-;;; Flushes (eg, cleans .boonmee tmp dir in project root) + close any open files on running tsserver
+;;; Flushes (eg, cleans files in .boonmee tmp dir) + closes any open files on running tsserver
 
 (s/def :client.request.flush/command #{"flush"})
-
-(s/def :client.request.flush/arguments
-  (s/keys :req-un [:client.request.completions.arguments/projectRoot]))
 
 (defmethod client-request "flush" [_]
   (s/keys :req-un [:client.request/requestId
                    :client.request/type
-                   :client.request.flush/command
-                   :client.request.flush/arguments]))
+                   :client.request.flush/command]))
 
 ;;;; Client responses
 
@@ -138,6 +134,7 @@
 (s/def :client.response.completionInfo/data string?)
 ;; TODO: write spec
 (s/def :client.response.completionInfo/data map?)
+(s/def :client.response.completionInfo/interop (s/nilable map?))
 
 (defmethod client-response "completionInfo" [_]
   (s/keys :req-un [:client.response/type
@@ -145,6 +142,7 @@
                    :client.response.completionInfo/command]
           :opt-un [:client.request/requestId
                    :client.response.completionInfo/data
+                   :client.response.completionInfo/interop
                    :client.response/message]))
 
 (comment

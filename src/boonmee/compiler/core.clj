@@ -110,6 +110,7 @@
          :else
          (let [next-idx (-> state :index inc)]
            (-> state
+               (assoc :cursor val)
                (update :js-out str (str (:js-out val) "\n"))
                (assoc :index next-idx)
                (assoc :line next-idx)

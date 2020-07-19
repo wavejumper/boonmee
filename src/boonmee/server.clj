@@ -6,12 +6,13 @@
             [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [expound.alpha :as expound]
-            [boonmee.tsserver.api :as api]
+            [boonmee.tsserver.api :as tsserver.api]
             [boonmee.compiler.core :as compiler :refer [es6-import es6-symbol]]
             [boonmee.util :as util]
             [boonmee.logging :as log]
             [boonmee.protocol])
-  (:import (java.util.concurrent.atomic AtomicInteger)))
+  (:import (java.io File)
+           (java.util.concurrent.atomic AtomicInteger)))
 
 (defn seq-id
   [state]
@@ -38,9 +39,11 @@
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
 
-    {:tsserver/requests [(api/open 0 out-file)
-                         (api/definition 0 out-file js-line js-offset)]
-     :state             (assoc-in state [:definition id] req)}))
+    {:tsserver/requests [(tsserver.api/open 0 out-file)
+                         (tsserver.api/definition 0 out-file js-line js-offset)]
+     :state             (-> state
+                            (assoc-in [:definition id] {:req req :compiled compiled})
+                            (update :files conj out-file))}))
 
 (defn handle-quick-info
   [state req]
@@ -57,9 +60,11 @@
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
 
-    {:tsserver/requests [(api/open id out-file)
-                         (api/quick-info id out-file js-line js-offset)]
-     :state             (assoc-in state [:quickinfo id] req)}))
+    {:tsserver/requests [(tsserver.api/open id out-file)
+                         (tsserver.api/quick-info id out-file js-line js-offset)]
+     :state             (-> state
+                            (assoc-in [:quickinfo id] {:req req :compiled compiled})
+                            (update :files conj out-file))}))
 
 (defn handle-completions
   [state req]
@@ -76,9 +81,11 @@
         js-line      (-> compiled :compiled :line)
         js-offset    (-> compiled :compiled :offset)]
 
-    {:tsserver/requests [(api/open id out-file)
-                         (api/completions id out-file js-line js-offset)]
-     :state             (assoc-in state [:completions id] req)}))
+    {:tsserver/requests [(tsserver.api/open id out-file)
+                         (tsserver.api/completions id out-file js-line js-offset)]
+     :state             (-> state
+                            (assoc-in [:completions id] {:req req :compiled compiled})
+                            (update :files conj out-file))}))
 
 (defmulti
  handle-client-request
@@ -104,9 +111,24 @@
                                    :version (:version state)}}]})
 
 (defmethod handle-client-request "open"
-  [state req]
-  #_(handlers/handle-open tsserver-req-ch req)
+  [state _]
   {:state state})
+
+(defmethod handle-client-request "heartbeat"
+  [state _]
+  {:state state})
+
+(defmethod handle-client-request "flush"
+  [state _]
+  (let [files (->> (:files state)
+                   (filter (fn [^File f]
+                             (str/ends-with? (.getName f) ".ts"))))
+        reqs  (map #(tsserver.api/close (seq-id state) %) files)]
+    (doseq [f files]
+      (log/debugf (->logger state) "Deleting %s" f)
+      (io/delete-file f :silently true))
+    {:state             (update state :files #(remove (set files) %))
+     :tsserver/requests reqs}))
 
 (defmethod handle-client-request "completions"
   [state req]
@@ -140,12 +162,14 @@
 (defmethod handle-tsserver-response ["response" "completionInfo"]
   [state resp]
   (let [seq-id     (:request_seq resp)
-        request-id (get-in state [:completions seq-id :requestId])
+        request-id (get-in state [:completions seq-id :req :requestId])
+        interop    (get-in state [:completions seq-id :compiled :compiled :cursor :sym])
         message    (:message resp)]
     {:client/responses [(cond-> {:command   "completionInfo"
                                  :type      "response"
                                  :success   (:success resp)
                                  :data      (:body resp)
+                                 :interop   interop
                                  :requestId request-id}
                           message (assoc :message message))]
      :state            (update state :completions dissoc seq-id)}))
@@ -162,7 +186,8 @@
    :logger  logger
    :ctx     ctx
    :init    (System/currentTimeMillis)
-   :version "1.0.0"})
+   :version "1.0.0"
+   :files   #{}})
 
 (defn process-client-req
   [state logger req]

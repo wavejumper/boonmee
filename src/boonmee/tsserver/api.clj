@@ -1,4 +1,5 @@
-(ns boonmee.tsserver.api)
+(ns boonmee.tsserver.api
+  (:import (java.io File)))
 
 (defn tsserver-rpc
   [seq command arguments]
@@ -8,31 +9,35 @@
    :arguments arguments})
 
 (defn open
-  [id file]
-  (tsserver-rpc id :open {:file (str file)}))
+  [id ^File file]
+  (tsserver-rpc id :open {:file (str (.getAbsoluteFile file))}))
+
+(defn close
+  [id ^File file]
+  (tsserver-rpc id :close {:file (str (.getAbsoluteFile file))}))
 
 (defn completions
-  [id file line offset]
-  (tsserver-rpc id :completionInfo {:file                         (str file)
+  [id ^File file line offset]
+  (tsserver-rpc id :completionInfo {:file                         (str (.getAbsoluteFile file))
                                     :line                         line
                                     :offset                       offset
                                     :includeExternalModuleExports true
                                     :includeInsertTextCompletions true}))
 
 (defn quick-info
-  [id file line offset]
-  (tsserver-rpc id :quickinfo {:file                         (str file)
+  [id ^File file line offset]
+  (tsserver-rpc id :quickinfo {:file                         (str (.getAbsoluteFile file))
                                :line                         line
                                :offset                       offset
                                :includeExternalModuleExports true}))
 
 (defn definition
-  [id file line offset]
-  (tsserver-rpc id :definition {:file                         (str file)
+  [id ^File file line offset]
+  (tsserver-rpc id :definition {:file                         (str (.getAbsoluteFile file))
                                 :line                         line
                                 :offset                       offset
                                 :includeExternalModuleExports true}))
 
 (defn reload
-  [id file]
-  (tsserver-rpc id :reload {:tmpfile (str file)}))
+  [id ^File file]
+  (tsserver-rpc id :reload {:tmpfile (str (.getAbsoluteFile file))}))

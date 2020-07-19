@@ -217,7 +217,7 @@
       (cond
         require-form?
         {:fragments nil
-         :sym       this
+         :sym       (symbol this)
          :global?   false
          :usage     :require}
 
