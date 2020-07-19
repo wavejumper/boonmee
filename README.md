@@ -176,6 +176,22 @@ For more examples, refer to the [integration tests](https://github.com/wavejumpe
   "command": "completionInfo",
   "type": "response",
   "success": true,
+  "interop": {
+    "fragments": [
+      "m"
+    ],
+    "global?": false,
+    "prev-location": [
+      4,
+      1
+    ],
+    "next-location": [
+      7,
+      1
+    ],
+    "sym": "Midi",
+    "usage": "method"
+  },
   "data": {
     "isGlobalCompletion": false,
     "isMemberCompletion": true,
