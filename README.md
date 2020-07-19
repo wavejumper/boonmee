@@ -25,7 +25,7 @@ And yet, most linting/editor tools (outside of Cursive for the JVM) consider the
 
 ### Editor functionality:
 
-- [x] Quickinfo (@jsdoc documentation, type signature, fn metadata etc)
+- [x] Quickinfo ([@jsdoc](https://jsdoc.app/) documentation, type signature, fn metadata etc)
 - [x] Code completions (require, fn calls)
 - [x] Go-to-definition
 
