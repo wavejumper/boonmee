@@ -3,11 +3,14 @@ version: 2.1
 executors:
   lein:
     docker:
-      - image: circleci:openjdk-14-lein-2.9.3-buster
+      - image: circleci/clojure:lein-2.9.3
     working_directory: ~/repo
 
+orbs:
+  node: circleci/node@1.1.6
+
 jobs:
-  boonmee:
+  deps:
     executor: lein
     working_directory: ~/repo
     steps:
@@ -20,10 +23,36 @@ jobs:
           paths:
             - ~/.m2
           key: boonmee-{{ checksum "project.clj" }}
-      - run: lein kaocha
+
+  test:
+    executor: lein
+    working_directory: ~/repo
+    steps:
+      - checkout:
+          path: ~/repo
+      - node/install
+      - restore_cache:
+          key: boonmee-{{ checksum "project.clj" }}
+      - run: ./scripts/test
+
+  compile_linux:
+    executor: lein
+    working_directory: ~/repo
+    steps:
+      - checkout:
+          path: ~/repo
+      - restore_cache:
+          key: boonmee-{{ checksum "project.clj" }}
+      - run: ./scripts/compile
 
 workflows:
   version: 2.1
   general_build:
     jobs:
-      - boonmee
+      - deps
+      - test:
+          - requires:
+              - deps
+      - compile_linux:
+          - requires:
+              - deps
