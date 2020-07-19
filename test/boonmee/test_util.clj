@@ -36,7 +36,6 @@
   [client msg]
   (async/put! (:req-ch client) msg))
 
-
 (defn locations
   [form]
   (let [zip (z/of-string (pr-str form) {:track-position? true})]

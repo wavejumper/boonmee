@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/wavejumper/boonmee.svg?style=svg)](https://circleci.com/gh/wavejumper/boonmee)
+
+
 # boonmee
 
 boonmee is a language server for Clojure that focuses on features relating to host interop.
