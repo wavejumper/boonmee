@@ -14,7 +14,7 @@ Goals:
 
 Right now boonmee only works on ClojureScript code (my personal frustration), but there are plans to target the JVM as well.
 
-You can read [this]() blog post about boonmee and its implementation details.
+You can read [this](http://localhost:3000/#/posts/2020-20-07-boonmee) blog post about boonmee and its implementation details.
 
 ## Why
 
