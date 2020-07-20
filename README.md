@@ -14,7 +14,7 @@ Goals:
 
 Right now boonmee only works on ClojureScript code (my personal frustration), but there are plans to target the JVM as well.
 
-You can read [this]() blog post about boonmee and its implementation detials.
+You can read [this]() blog post about boonmee and its implementation details.
 
 ## Why
 
@@ -23,6 +23,8 @@ The biggest strength of Clojure is the fact that it is a hosted language.
 Every Clojure codebase I have worked on leverages a host library at its core. 
 
 And yet, most linting/editor tools (outside of Cursive for the JVM) consider the host language as an afterthought.
+
+The guiding idea: in order to understand Clojure, you must first understand the host it is attached to.
 
 ## Features
 
@@ -99,6 +101,10 @@ If you would like to use boonmee directly from a Clojure project, bring in the f
 (boonmee/stop client)
 ```
 
+## Editor integration
+
+WIP, no editor plugins exist for boonmee yet.
+
 ## ClojureScript 
 
 ### NPM deps
@@ -113,7 +119,7 @@ If you are a [shadow-cljs](http://shadow-cljs.org/) user, using boonmee should b
 
 boonmee's functionality comes from the [TypeScript](https://www.typescriptlang.org/) compiler. 
 
-That means a `@types/*` package should be installed as a dev dependency, if the library you require is written in vanllia JavaScript:
+That means a `@types/*` package should be installed as a dev dependency, if the library you require is written in vanilla JavaScript:
 
 ```
 npm install --save-dev @types/react
@@ -125,7 +131,7 @@ The [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/Definit
 
 ### Globals
 
-The `--env` switch tells boonmee which environment your ClojureScript project is targetting. 
+The `--env` switch tells boonmee which environment your ClojureScript project is targeting. 
 
 This enables intellisense for `js/...` globals. 
 
