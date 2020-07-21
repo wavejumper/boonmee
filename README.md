@@ -44,9 +44,9 @@ The guiding idea: in order to understand Clojure, you must first understand the 
 
 Download a binary from the [releases](https://github.com/wavejumper/boonmee/releases) page. 
 
-Binaries get built via [CircleCI](https://app.circleci.com/pipelines/github/wavejumper/boonmee) - you can view the CI job to verify the SHA hash.
+Binaries get built via [GitHub Actions](https://github.com/wavejumper/boonmee/actions)
 
-Refer to the CI job on how to compile boonmee as a native image from source.
+Refer to the [CI job](https://github.com/wavejumper/boonmee/blob/master/.github/workflows/clojure.yml) on how to compile boonmee as a native image from source.
 
 ## Dependencies 
 
