@@ -300,9 +300,6 @@
                              :offset      8}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (println "BEFORE => " (System/currentTimeMillis))
         (let [resp (response! client 60000)]
-          (println "AFTER => " (System/currentTimeMillis))
-          (println "RESP => " resp)
           (is (s/valid? :client/response resp))
           (is (= resp process-resp)))))))
