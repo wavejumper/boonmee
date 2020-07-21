@@ -23,8 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
-        run: |
-          lein deps
+        run: lein deps
       - name: Install GraalVM
         run: |
           curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
@@ -46,26 +45,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install lein
-        run: |
-          sudo curl -O https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
-          sudo chmod +x lein
-          mkdir ~/bin
-          mv lein ~/bin
+        run: brew install lein
       - name: Install dependencies
-        run: |
-          export PATH=$PATH:~/bin
-          lein deps
+        run: lein deps
       - name: Install GraalVM
-        run: |
-          curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
-          tar xzf graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
+        run: brew cask install graalvm/tap/graalvm-ce-lts-java11
       - name: Compile
-        run: |
-          ls -lh
-          export PATH=$PATH:~/bin
-          ./scripts/compile
+        run: ./scripts/compile
         env:
-          GRAALVM_HOME: graalvm-ce-java11-20.1.0
+          GRAALVM_HOME: /Library/Java/JavaVirtualMachines/graalvm-ce-java11-20.1.0/Contents/Home
       - name: Artifact
         uses: actions/upload-artifact@v1
         with:
