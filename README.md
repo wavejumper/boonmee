@@ -1,4 +1,5 @@
 ![Clojure CI](https://github.com/wavejumper/boonmee/workflows/Clojure%20CI/badge.svg?branch=master)
+[![Clojars Project](https://img.shields.io/clojars/v/wavejumper/boonmee.svg)](https://clojars.org/wavejumper/boonmee)
 
 # boonmee
 
