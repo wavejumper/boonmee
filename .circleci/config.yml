@@ -36,6 +36,36 @@ jobs:
           key: boonmee-{{ checksum "project.clj" }}
       - run: ./scripts/test
 
+  compile_macos:
+    build:
+      macos:
+        xcode: 11.3.0
+    working_directory: ~/repo
+    environment:
+      GRAALVM_HOME: /home/circleci/graalvm-ce-java11-darwin-amd64-20.1.0
+    steps:
+      - checkout:
+          path: ~/repo
+      - restore_cache:
+          key: boonmee-{{ checksum "project.clj" }}
+      - run:
+          name: Download GraalVM
+          command: |
+            cd ~
+            if ! [ -d graalvm-ce-java11-20.1.0 ]; then
+              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
+              tar xzf graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
+            fi
+      - run: ./scripts/compile
+      - run:
+          name: Release artifact
+          command: |
+            mkdir /tmp/release
+            mv boonmee /tmp/release
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
+
   compile_linux:
     executor: lein
     working_directory: ~/repo
@@ -86,5 +116,8 @@ workflows:
           requires:
             - deps
       - compile_linux:
+          requires:
+            - deps
+      - compile_macos:
           requires:
             - deps
