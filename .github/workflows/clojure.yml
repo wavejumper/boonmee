@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: lein deps
       - name: Install GraalVM
-        run: brew cask install graalvm/tap/graalvm-ce-lts-java11
+        run: brew cask install graalvm/tap/graalvm-ce-java11
       - name: Compile
         run: ./scripts/compile
         env:
