@@ -49,9 +49,13 @@ jobs:
         run: |
           sudo curl -O https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
           sudo chmod +x lein
+          mkdir ~/bin
+          mv lein ~/bin
       - name: Install dependencies
         run: |
           lein deps
+        env:
+          PATH: $PATH:~/bin
       - name: Install GraalVM
         run: |
           curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
@@ -60,6 +64,7 @@ jobs:
         run: ./scripts/compile
         env:
           GRAALVM_HOME: graalvm-ce-java11-20.1.0
+          PATH: $PATH:~/bin
       - name: Artifact
         uses: actions/upload-artifact@v1
         with:
