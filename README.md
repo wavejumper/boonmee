@@ -12,6 +12,7 @@ Goals:
 
 * For now, focus on interop - there are other great tools that lint Clojure code already ([clj-kondo](https://github.com/borkdude/clj-kondo), [joker](https://github.com/candid82/joker) etc)
 * Tooling-agnostic - you should be able to integrate boonmee into any IDE/editor tool
+* All analysis should be static, and side-effect free (eg, does not evaluate any code)
 
 Right now boonmee only works on ClojureScript code (my personal frustration), but there are plans to target the JVM as well.
 
