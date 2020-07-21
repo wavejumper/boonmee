@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install lein
-        run: brew install lein
+        run: brew install leiningen
       - name: Install dependencies
         run: lein deps
       - name: Install GraalVM
