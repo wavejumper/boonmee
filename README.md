@@ -48,7 +48,7 @@ Download a binary from the [releases](https://github.com/wavejumper/boonmee/rele
 
 Binaries get built via [GitHub Actions](https://github.com/wavejumper/boonmee/actions)
 
-Refer to the [CI job](https://github.com/wavejumper/boonmee/blob/master/.github/workflows/clojure.yml) on how to compile boonmee as a native image from source.
+Refer to the [CI job](https://github.com/wavejumper/boonmee/blob/master/.github/workflows/release.yml) on how to compile boonmee as a native image from source.
 
 ## Dependencies 
 
