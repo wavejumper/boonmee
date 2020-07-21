@@ -88,6 +88,6 @@
                              :offset      3}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (let [resp (response! client 10000)]
+        (let [resp (response! client 60000)]
           (is (s/valid? :client/response resp))
           (is (= resp browser-resp)))))))

@@ -87,7 +87,7 @@
                              :offset      1}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (let [resp (response! client 10000)]
+        (let [resp (response! client 60000)]
           (is (s/valid? :client/response resp))
           (is (= resp
                  {:command   "completionInfo"
@@ -109,7 +109,7 @@
                              :offset      10}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (let [resp (response! client 10000)]
+        (let [resp (response! client 60000)]
           (is (s/valid? :client/response resp))
           (is (= {:command   "quickinfo"
                   :type      "response"
@@ -138,7 +138,7 @@
                              :offset      1}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (let [resp (response! client 10000)]
+        (let [resp (response! client 60000)]
           (is (s/valid? :client/response resp))
           (is (= {:command   "quickinfo"
                   :type      "response"
@@ -160,7 +160,7 @@
                              :offset      10}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (let [resp (response! client 10000)]
+        (let [resp (response! client 60000)]
           (is (s/valid? :client/response resp))
           (is (= resp
                  {:command   "definition"
@@ -193,7 +193,7 @@
                              :offset      1}}]
         (is (s/valid? :client/request req))
         (request! client req)
-        (let [resp (response! client 10000)]
+        (let [resp (response! client 60000)]
           (is (s/valid? :client/response resp))
           (is (= resp
                  {:command   "definition"
