@@ -15,6 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
+        git status
         lein deps
         sudo npm install -g typescript
     - name: Run tests
