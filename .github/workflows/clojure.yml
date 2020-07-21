@@ -45,6 +45,11 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install lein
+        run: |
+          sudo curl -O https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+          sudo chmod +x lein
+          sudo mv lein /usr/bin
       - name: Install dependencies
         run: |
           lein deps
