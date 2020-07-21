@@ -1,5 +1,4 @@
-[![CircleCI](https://circleci.com/gh/wavejumper/boonmee.svg?style=svg)](https://circleci.com/gh/wavejumper/boonmee)
-
+![Clojure CI](https://github.com/wavejumper/boonmee/workflows/Clojure%20CI/badge.svg?branch=master)
 
 # boonmee
 
