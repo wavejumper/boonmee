@@ -27,14 +27,14 @@ jobs:
           lein deps
       - name: Compile
         run: |
-          curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java8-linux-amd64-20.1.0.tar.gz
-          tar xzf graalvm-ce-java8-linux-amd64-20.1.0.tar.gz
+          curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
+          tar xzf graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
           ls -lh
-          ls -lh $GRAALVM_HOME/bin
+          ls $GRAALVM_HOME
           echo $GRAALVM_HOME
           ./scripts/compile
         env: 
-          GRAALVM_HOME: graalvm-ce-java8-linux-amd64-20.1.0
+          GRAALVM_HOME: graalvm-ce-java11-linux-amd64-20.1.0
       - name: boonmee native image
         uses: actions/upload-artifact@v1
         with:
