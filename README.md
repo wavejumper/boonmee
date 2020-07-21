@@ -26,8 +26,6 @@ Every Clojure codebase I have worked on leverages a host library at its core.
 
 And yet, most linting/editor tools (outside of Cursive for the JVM) consider the host language as an afterthought.
 
-The guiding idea: in order to understand Clojure, you must first understand the host it is attached to.
-
 ## Features
 
 ### Editor functionality:
