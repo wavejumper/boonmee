@@ -25,18 +25,16 @@ jobs:
       - name: Install dependencies
         run: |
           lein deps
-      - name: Compile
+      - name: Install GraalVM
         run: |
           curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
           tar xzf graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
-          ls -lh
-          ls $GRAALVM_HOME
-          echo $GRAALVM_HOME
-          ./scripts/compile
+      - name: Compile
+        run: ./scripts/compile
         env: 
-          GRAALVM_HOME: graalvm-ce-java11-linux-amd64-20.1.0
-      - name: boonmee native image
+          GRAALVM_HOME: graalvm-ce-java11-20.1.0
+      - name: Artifact
         uses: actions/upload-artifact@v1
         with:
-          name: boonmee-linux
+          name: boonmee-linux-1.0.0-alpha1
           path: /tmp/boonmee
