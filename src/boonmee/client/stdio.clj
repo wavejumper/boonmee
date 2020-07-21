@@ -71,7 +71,8 @@
    [:async/chan :chan/client-req-ch]    {}
    :boonmee/tsserver                    {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
-                                         :logger           (ig/ref :logger/file-logger)}
+                                         :logger           (ig/ref :logger/file-logger)
+                                         :tsserver         (:tsserver opts)}
    :boonmee/server                      {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
@@ -81,7 +82,6 @@
                                                             :env    (:env opts)}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
-                                         :tsserver       (:tsserver opts)
                                          :in             (ig/ref :boonmee/stdio-reader)
                                          :out            System/out}
    :boonmee/stdio-reader                {:in System/in}
