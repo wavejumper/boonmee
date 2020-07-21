@@ -7,16 +7,30 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        git status
         lein deps
         sudo npm install -g typescript
     - name: Run tests
       run: ./scripts/test
+
+  linux_compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          lein deps
+      - name: Install GraalVM
+        run: |
+          cd ~
+          if ! [ -d graalvm-ce-java11-20.1.0 ]; then
+            curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.1.0/graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
+            tar xzf graalvm-ce-java11-darwin-amd64-20.1.0.tar.gz
+          fi
+      - name: Compile
+        run: ./scripts/compile
