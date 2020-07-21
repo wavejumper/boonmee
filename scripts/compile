@@ -16,7 +16,7 @@ export PATH=$GRAALVM_HOME/bin:$PATH
 
 lein with-profiles +native-image "do" clean, uberjar
 
-args=( "-jar" "target/boonmee-0.1.0-standalone.jar" \
+args=( "-jar" "target/boonmee-0.1.0-alpha1-standalone.jar" \
               "-H:Name=boonmee" \
               "-H:+ReportExceptionStackTraces" \
               "-J-Dclojure.spec.skip-macros=true" \

@@ -12,9 +12,12 @@
 
     (client/stop client)))
 
+(def default-opts
+  {:tsserver "tsserver"})
+
 (defn client-config
   [opts]
-  (client/config opts))
+  (client/config (merge default-opts opts)))
 
 (defmacro with-client [[sym opts] & body]
   `(let [opts#   ~opts

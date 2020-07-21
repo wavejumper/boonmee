@@ -63,31 +63,18 @@ By default, boonmee will use the `tsserver` found on your `$PATH`. However, you 
 ./boonmee --tsserver=/path/to/tsserver
 ````
 
-### tsserver over TCP
-
-Some editors, like VSCode come bundled with `tsserver`.
-
-If you are integrating boonmee with a VSCode plugin, you can have boonmee connect to a remote instance of `tsserver`:
-
-``` 
-./boonmee --tsserver-port=9433
-```
-
-This removes the dependency on NodeJS :)
-
 ## Usage
 
-Interaction with boonmee happens either via stdio (default) or TCP
+Interaction with boonmee happens via stdio:
 
-`./boonmee --client=stdio`
-
-`./boonmee --client=tcp --port=9000`
+`./boonmee`
 
 Refer to the [Example RPC](#example-rpc) section for some examples of client requests.
 
 If you would like to use boonmee directly from a Clojure project, bring in the following dependency:
 
 ```clojure
+[wavejumper/boonmee "0.1.0-alpha1"]
 ```
 
 ```clojure

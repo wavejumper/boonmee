@@ -2,8 +2,12 @@
   (:require [boonmee.client.clojure :as boonmee]
             [clojure.core.async :as async]))
 
+(def config
+  {:env      "node"
+   :tsserver "tsserver"})
+
 (defonce system
-  (atom (boonmee/map->ClojureClient {:config (boonmee/config {})})))
+  (atom (boonmee/map->ClojureClient {:config (boonmee/config config)})))
 
 (defn start! []
   (swap! system boonmee/start))

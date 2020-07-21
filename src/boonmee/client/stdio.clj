@@ -30,28 +30,25 @@
 (defmethod ig/init-key
   :boonmee/stdio-client
   [_ {:keys [client-req-ch client-resp-ch in out]}]
-  (let [ts (atom (System/currentTimeMillis))]
-    {:ts  ts
-     :in  (util/line-handler [line in]
+  {:in  (util/line-handler [line in]
+          (try
+            (let [req (json/read-str line :key-fn keyword)]
+              (async/put! client-req-ch req))
+            (catch Throwable e
+              (async/put! client-resp-ch {:command "error"
+                                          :type    "response"
+                                          :success false
+                                          :message (.getMessage e)}))))
+   :out (async/go-loop []
+          (when-let [resp (async/<! client-resp-ch)]
             (try
-              (reset! ts (System/currentTimeMillis))
-              (let [req (json/read-str line :key-fn keyword)]
-                (async/put! client-req-ch req))
+              (print-out out resp)
               (catch Throwable e
                 (async/put! client-resp-ch {:command "error"
                                             :type    "response"
                                             :success false
-                                            :message (.getMessage e)}))))
-     :out (async/go-loop []
-            (when-let [resp (async/<! client-resp-ch)]
-              (try
-                (print-out out resp)
-                (catch Throwable e
-                  (async/put! client-resp-ch {:command "error"
-                                              :type    "response"
-                                              :success false
-                                              :message (.getMessage e)})))
-              (recur)))}))
+                                            :message (.getMessage e)})))
+            (recur)))})
 
 (defmethod ig/halt-key! :boonmee/stdio-client
   [_ {:keys [in out]}]
@@ -84,6 +81,7 @@
                                                             :env    (:env opts)}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
+                                         :tsserver       (:tsserver opts)
                                          :in             (ig/ref :boonmee/stdio-reader)
                                          :out            System/out}
    :boonmee/stdio-reader                {:in System/in}

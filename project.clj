@@ -1,4 +1,4 @@
-(defproject boonmee "0.1.0"
+(defproject boonmee "0.1.0-alpha1"
   :description "cljs tooling"
   :url "https://github.com/wavejumper/boonmee"
 

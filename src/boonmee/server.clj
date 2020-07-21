@@ -139,10 +139,6 @@
   [state _]
   {:state state})
 
-(defmethod handle-client-request "heartbeat"
-  [state _]
-  {:state state})
-
 (defmethod handle-client-request "flush"
   [state _]
   (let [files (->> (:files state)

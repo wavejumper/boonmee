@@ -16,18 +16,6 @@
 (s/def :client.request/requestId string?)
 (s/def :client.request/type #{"request"})
 
-;;; Heartbeat
-;;;
-;;; A heartbeat is required for the TCP protocol (at a defined heartbeat-ms, default 30s)
-;;; You can send this client request to keep the TCP connection open
-
-(s/def :client.request.heartbeat/command #{"heartbeat"})
-
-(defmethod client-request "heartbeat" [_]
-  (s/keys :req-un [:client.request/requestId
-                   :client.request/type
-                   :client.request.heartbeat/command]))
-
 ;;; Info
 ;;;
 ;;; Returns info relating to the boonmee instance + connection

@@ -12,7 +12,8 @@
    [:async/chan :chan/client-req-ch]    {}
    :boonmee/tsserver                    {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
-                                         :logger           (ig/ref :logger/stdout-logger)}
+                                         :logger           (ig/ref :logger/stdout-logger)
+                                         :tsserver         (:tsserver opts)}
    :boonmee/server                      {:tsserver-resp-ch (ig/ref :chan/tsserver-resp-ch)
                                          :tsserver-req-ch  (ig/ref :chan/tsserver-req-ch)
                                          :client-req-ch    (ig/ref :chan/client-req-ch)
