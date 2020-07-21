@@ -37,7 +37,8 @@ jobs:
       - run: ./scripts/test
 
   compile_macos:
-    executor: macos
+    macos:
+      xcode: 11.3.0
     working_directory: ~/repo
     environment:
       GRAALVM_HOME: /home/circleci/graalvm-ce-java11-darwin-amd64-20.1.0
