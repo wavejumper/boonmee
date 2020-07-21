@@ -46,6 +46,9 @@ jobs:
           path: ~/repo
       - restore_cache:
           key: boonmee-{{ checksum "project.clj" }}
+      - restore_cache:
+          keys:
+            - linux-{{ checksum "project.clj" }}-{{ checksum ".circleci/config.yml" }}
       - run:
           name: Install native dev tools
           command: |
@@ -60,6 +63,19 @@ jobs:
               tar xzf graalvm-ce-java11-linux-amd64-20.1.0.tar.gz
             fi
       - run: ./scripts/compile
+      - run:
+          name: Release artifact
+          command: |
+            mkdir /tmp/release
+            mv boonmee /tmp/release
+            sha256sum /tmp/release/boonmee
+      - save_cache:
+          paths:
+            - ~/graalvm-ce-java11-20.1.0
+          key: linux-{{ checksum "project.clj" }}-{{ checksum ".circleci/config.yml" }}
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
 
 workflows:
   version: 2.1
