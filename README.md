@@ -1,4 +1,5 @@
 ![Clojure CI](https://github.com/wavejumper/boonmee/workflows/Clojure%20CI/badge.svg?branch=master)
+![Release](https://github.com/wavejumper/boonmee/workflows/Release/badge.svg?branch=master)
 [![Clojars Project](https://img.shields.io/clojars/v/wavejumper/boonmee.svg)](https://clojars.org/wavejumper/boonmee)
 
 # boonmee
@@ -11,6 +12,7 @@ Goals:
 
 * For now, focus on interop - there are other great tools that lint Clojure code already ([clj-kondo](https://github.com/borkdude/clj-kondo), [joker](https://github.com/candid82/joker) etc)
 * Tooling-agnostic - you should be able to integrate boonmee into any IDE/editor tool
+* All analysis should be static, and side-effect free (eg, does not evaluate any code)
 
 Right now boonmee only works on ClojureScript code (my personal frustration), but there are plans to target the JVM as well.
 
@@ -24,15 +26,13 @@ Every Clojure codebase I have worked on leverages a host library at its core.
 
 And yet, most linting/editor tools (outside of Cursive for the JVM) consider the host language as an afterthought.
 
-The guiding idea: in order to understand Clojure, you must first understand the host it is attached to.
-
 ## Features
 
 ### Editor functionality:
 
 - [x] Quickinfo ([@jsdoc](https://jsdoc.app/) documentation, type signature, fn metadata etc)
 - [x] Code completions (require, fn calls)
-- [x] Go-to-definition
+- [x] Code navigation (jump to definition)
 
 ### Linting (WIP):
 
@@ -47,7 +47,7 @@ Download a binary from the [releases](https://github.com/wavejumper/boonmee/rele
 
 Binaries get built via [GitHub Actions](https://github.com/wavejumper/boonmee/actions)
 
-Refer to the [CI job](https://github.com/wavejumper/boonmee/blob/master/.github/workflows/clojure.yml) on how to compile boonmee as a native image from source.
+Refer to the [CI job](https://github.com/wavejumper/boonmee/blob/master/.github/workflows/release.yml) on how to compile boonmee as a native image from source.
 
 ## Dependencies 
 
