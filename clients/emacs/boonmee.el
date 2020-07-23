@@ -7,13 +7,13 @@
   (let* ((data (plist-get resp :data))
          (start (plist-get data :start))
          (line (plist-get start :line))
+         (column (plist-get start :offset))
          (file (plist-get data :file)))
     (find-file file)
-    ;; TODO: what about offsets?
-    (goto-line line)))
+    (goto-line line)
+    (move-to-column column)))
 
 (defun boonmee-handle-response (process output)
-  (print output)
   (let* ((json-object-type 'plist)
          (resp (json-read-from-string output))
          (command (plist-get resp :command)))
@@ -33,7 +33,6 @@
       (set-process-filter proc 'boonmee-handle-response))))
 
 (defun project-root (file)
-  (print file)
   (let ((dir (file-name-directory file)))
     (if (file-exists-p (concat dir "node_modules"))
         dir
@@ -44,6 +43,7 @@
   (let* ((line (string-to-number (format-mode-line "%l")))
          (offset (string-to-number (format-mode-line "%c")))
          (file (buffer-file-name))
+         ;; TODO: generate unique request id
          (req-id "1234")
          (args (list :file file :line line :offset offset :projectRoot (file-name-directory file)))
          (req (json-encode (list :command "definition" :type "request" :requestId req-id :arguments args))))
