@@ -90,7 +90,23 @@ If you would like to use boonmee directly from a Clojure project, bring in the f
 
 ## Editor integration
 
-WIP, no editor plugins exist for boonmee yet.
+### Emacs (WIP)
+
+![emacs plugin](https://i.imgur.com/9FVeVn5.gif)
+
+See [boonmee.el](https://github.com/wavejumper/boonmee/blob/master/clients/emacs/boonmee.el) in this repo
+
+WIP emacs client, currently supports:
+
+- [ ] Quickinfo
+- [ ] Code completions
+- [x] Code navigation (`M-x boonmee-goto-definition`)
+
+In your `init.el`, add something like:
+
+```
+(add-hook 'clojure-mode-hook (lambda() (boonmee-init)))
+```
 
 ## ClojureScript 
 
