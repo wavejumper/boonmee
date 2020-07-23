@@ -74,7 +74,7 @@ Refer to the [Example RPC](#example-rpc) section for some examples of client req
 If you would like to use boonmee directly from a Clojure project, bring in the following dependency:
 
 ```clojure
-[wavejumper/boonmee "0.1.0-alpha1"]
+[wavejumper/boonmee "0.1.0-alpha2"]
 ```
 
 ```clojure
