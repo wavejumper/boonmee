@@ -3,10 +3,10 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
+      release:
         description: 'Version'
         required: true
-        default: 'boonmee-linux'
+        default: '0.1.0'
 
 jobs:
   linux_compile:
