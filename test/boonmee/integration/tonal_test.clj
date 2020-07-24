@@ -24,7 +24,7 @@
                               :ctx     {:client :clojure
                                         :env    "browser"}
                               :init    (-> resp :data :init)
-                              :version "1.0.0"}})))))))
+                              :version (slurp (io/resource "version"))}})))))))
 
 #_(deftest malformed-requests)
 
