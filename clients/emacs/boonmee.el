@@ -1,6 +1,14 @@
 (require 'json)
 
-(defvar boonmee-command "boonmee")
+(defcustom boonmee-idle-time 0.5
+  "Time after which to query quickinfo at point"
+  :group 'boonmee
+  :type 'float)
+
+(defcustom boonmee-command "boonmee"
+  "The location of the boonmee binary"
+  :group 'boonmee
+  :type 'string)
 
 (defun boonmee-handle-error (resp)
   (print "boonmee: error"))
@@ -24,7 +32,7 @@
   (let* ((json-object-type 'plist)
          (resp (json-read-from-string output))
          (command (plist-get resp :command))
-         (success (plist-get resp :success)))
+         (success (eq (plist-get resp :success) t)))
     (cond
      ((string= "error" command)
       (boonmee-handle-error resp))
@@ -35,9 +43,7 @@
      ((and (string= "quickinfo" command) success)
       (boonmee-handle-quickinfo resp))
 
-     (not success)
-     (print (concat "boonmee: command failed " output))
-
+     ((not success) nil)
      (t (message (concat "boonmee: cannot handle command " command) )))))
 
 (defun boonmee-init ()
@@ -73,3 +79,19 @@
          (args (list :file file :line line :offset offset :projectRoot (file-name-directory file)))
          (req (json-encode (list :command "quickinfo" :type "request" :requestId req-id :arguments args))))
     (process-send-string "boonmee" (concat req "~\n"))))
+
+(defvar boonmee-global-timer nil
+  "Timer to trigger quickinfo.")
+
+(define-minor-mode boonmee-mode
+  "Clojure intellisense"
+  :group 'boonmee
+  (when boonmee-mode
+    (progn
+      (boonmee-init)
+      (unless boonmee-global-timer
+        (setq boonmee-global-timer
+              (run-with-idle-timer boonmee-idle-time
+                                   :repeat 'boonmee-quickinfo))))))
+
+(provide 'boonmee-mode)
