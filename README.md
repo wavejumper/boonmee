@@ -98,7 +98,7 @@ See [boonmee.el](https://github.com/wavejumper/boonmee/blob/master/clients/emacs
 
 WIP emacs client, currently supports:
 
-- [ ] Quickinfo
+- [x] Quickinfo (`M-x boonmee-quickinfo`)
 - [ ] Code completions
 - [x] Code navigation (`M-x boonmee-goto-definition`)
 
