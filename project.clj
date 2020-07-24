@@ -1,7 +1,7 @@
 (def version (slurp "resources/version"))
 
 (defproject wavejumper/boonmee `~version
-  :description "cljs tooling"
+  :description "Clojure language server"
   :url "https://github.com/wavejumper/boonmee"
 
   :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
