@@ -1,5 +1,6 @@
 (ns boonmee.cli
   (:require [boonmee.client.stdio :as client.stdio]
+            [clojure.java.io :as io]
             [clojure.tools.cli :as tools.cli]
             [integrant.core :as ig])
   (:import (java.util.concurrent CountDownLatch))
@@ -17,6 +18,8 @@
    ["-T" "--tsserver" "tsserver"
     :default "tsserver"]
 
+   ["-v" "--version"]
+
    ["-h" "--help"]])
 
 (defn -main
@@ -31,6 +34,10 @@
 
     (when (-> opts :options :help)
       (println (:summary opts))
+      (System/exit 0))
+
+    (when (-> opts :options :version)
+      (println (slurp (io/resource "version")))
       (System/exit 0))
 
     (let [config (client.stdio/config (:options opts))]

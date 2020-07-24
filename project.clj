@@ -1,4 +1,6 @@
-(defproject wavejumper/boonmee "0.1.0-alpha2"
+(def version (slurp "resources/version"))
+
+(defproject wavejumper/boonmee `~version
   :description "cljs tooling"
   :url "https://github.com/wavejumper/boonmee"
 
@@ -10,6 +12,8 @@
                  [rewrite-clj "0.6.1"]
                  [integrant "0.8.0"]
                  [expound "0.8.5"]]
+
+  :resource-paths ["resources"]
 
   :profiles {:dev          {:test-paths     ["test"]
                             :resource-paths ["dev-resources"]

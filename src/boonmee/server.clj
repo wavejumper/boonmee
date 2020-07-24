@@ -240,7 +240,7 @@
    :logger  logger
    :ctx     ctx
    :init    (System/currentTimeMillis)
-   :version "1.0.0"
+   :version (slurp (io/resource "version"))
    :files   #{}})
 
 (defn process-client-req
