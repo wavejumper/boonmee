@@ -33,6 +33,9 @@
          (display-string (plist-get data :displayString)))
     (message display-string)))
 
+(defun boonmee-handle-completion (resp)
+  (print resp))
+
 (defun boonmee-handle-response (process output)
   (ignore-errors
     (let* ((json-object-type 'plist)
@@ -48,6 +51,9 @@
 
        ((and (string= "quickinfo" command) success)
         (boonmee-handle-quickinfo resp))
+
+       ((and (string= "completionInfo" command) success)
+        (boonmee-handle-completion resp))
 
        ((not success) nil)
        (t (message (concat "boonmee: cannot handle command " command) ))))))
@@ -99,6 +105,18 @@
            (req-file (boonmee-req-file file root))
            (args (list :file req-file :line line :offset offset :projectRoot root))
            (req (json-encode (list :command "quickinfo" :type "request" :requestId req-id :arguments args))))
+      (process-send-string "boonmee" (concat req "~\n")))))
+
+(defun boonmee-completions ()
+  (interactive)
+  (when-let* ((file (buffer-file-name))
+              (root (boonmee-project-root file)))
+    (let* ((line (string-to-number (format-mode-line "%l")))
+           (offset (string-to-number (format-mode-line "%c")))
+           (req-id (boonmee-request-id))
+           (req-file (boonmee-req-file file root))
+           (args (list :file req-file :line line :offset offset :projectRoot root))
+           (req (json-encode (list :command "completions" :type "request" :requestId req-id :arguments args))))
       (process-send-string "boonmee" (concat req "~\n")))))
 
 (defvar boonmee-global-timer nil
