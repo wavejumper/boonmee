@@ -43,74 +43,73 @@
                       (-> req :arguments :offset)]
         form         [(es6-import)
                       (es6-symbol {:loc     loc
-                                   :cursor? true})]
-        compiled     (compiler/compile (env state) file form)]
-    (if (-> compiled :compiled :cursor :sym)
-      (let [out-file  (util/spit-src project-root compiled)
-            js-line   (-> compiled :compiled :line)
-            js-offset (-> compiled :compiled :offset)]
-        {:tsserver/requests [(tsserver.api/open 0 out-file)
-                             (tsserver.api/definition 0 out-file js-line js-offset)]
-         :state             (-> state
-                                (assoc-in [:definition id] {:req req :compiled compiled})
-                                (update :files conj out-file))})
-      {:state state
-       :client/responses [{:command   "definition"
-                           :interop   nil
-                           :success   false
-                           :type      "response"
-                           :message   (str "No interop found at " loc)
-                           :requestId (:requestId req)}]})))
+                                   :cursor? true})]]
+    (when-let [compiled (compiler/compile (env state) file form)]
+      (if (-> compiled :compiled :cursor :sym)
+        (let [out-file  (util/spit-src project-root compiled)
+              js-line   (-> compiled :compiled :line)
+              js-offset (-> compiled :compiled :offset)]
+          {:tsserver/requests [(tsserver.api/open 0 out-file)
+                               (tsserver.api/definition 0 out-file js-line js-offset)]
+           :state             (-> state
+                                  (assoc-in [:definition id] {:req req :compiled compiled})
+                                  (update :files conj out-file))})
+        {:state            state
+         :client/responses [{:command   "definition"
+                             :interop   nil
+                             :success   false
+                             :type      "response"
+                             :message   (str "No interop found at " loc)
+                             :requestId (:requestId req)}]}))))
 
 (defn handle-quick-info
   [state req]
-  (let [id           (seq-id state)
-        file         (-> req :arguments :file io/file)
-        loc          [(-> req :arguments :line)
-                      (-> req :arguments :offset)]
-        form         [(es6-import)
-                      (es6-symbol {:loc     loc
-                                   :cursor? true})]
-        compiled     (compiler/compile (env state) file form)
-        project-root (-> req :arguments :projectRoot io/file)
-        out-file     (util/spit-src project-root compiled)
-        js-line      (-> compiled :compiled :line)
-        js-offset    (-> compiled :compiled :offset)]
-
-    {:tsserver/requests [(tsserver.api/open id out-file)
-                         (tsserver.api/quick-info id out-file js-line js-offset)]
-     :state             (-> state
-                            (assoc-in [:quickinfo id] {:req req :compiled compiled})
-                            (update :files conj out-file))}))
-
-(defn handle-completions
-  [state req]
-  (let [id       (seq-id state)
-        file     (-> req :arguments :file io/file)
-        loc      [(-> req :arguments :line)
-                  (-> req :arguments :offset)]
-        form     [(es6-import)
-                  (es6-symbol {:loc     loc
-                               :cursor? true})]
-        compiled (compiler/compile (env state) file form)]
-    (if (-> compiled :compiled :cursor :sym)
+  (let [id   (seq-id state)
+        file (-> req :arguments :file io/file)
+        loc  [(-> req :arguments :line)
+              (-> req :arguments :offset)]
+        form [(es6-import)
+              (es6-symbol {:loc     loc
+                           :cursor? true})]]
+    (when-let [compiled (compiler/compile (env state) file form)]
       (let [project-root (-> req :arguments :projectRoot io/file)
             out-file     (util/spit-src project-root compiled)
             js-line      (-> compiled :compiled :line)
             js-offset    (-> compiled :compiled :offset)]
         {:tsserver/requests [(tsserver.api/open id out-file)
-                             (tsserver.api/completions id out-file js-line js-offset)]
+                             (tsserver.api/quick-info id out-file js-line js-offset)]
          :state             (-> state
-                                (assoc-in [:completions id] {:req req :compiled compiled})
-                                (update :files conj out-file))})
+                                (assoc-in [:quickinfo id] {:req req :compiled compiled})
+                                (update :files conj out-file))}))))
 
-      {:state            state
-       :client/responses [{:command   "completionInfo"
-                           :type      "response"
-                           :success   false
-                           :interop   nil
-                           :requestId (:requestId req)
-                           :message   (str "No interop found at " loc)}]})))
+(defn handle-completions
+  [state req]
+  (let [id   (seq-id state)
+        file (-> req :arguments :file io/file)
+        loc  [(-> req :arguments :line)
+              (-> req :arguments :offset)]
+        form [(es6-import)
+              (es6-symbol {:loc     loc
+                           :cursor? true})]]
+    (when-let [compiled (compiler/compile (env state) file form)]
+      (if (-> compiled :compiled :cursor :sym)
+        (let [project-root (-> req :arguments :projectRoot io/file)
+              out-file     (util/spit-src project-root compiled)
+              js-line      (-> compiled :compiled :line)
+              js-offset    (-> compiled :compiled :offset)]
+          {:tsserver/requests [(tsserver.api/open id out-file)
+                               (tsserver.api/completions id out-file js-line js-offset)]
+           :state             (-> state
+                                  (assoc-in [:completions id] {:req req :compiled compiled})
+                                  (update :files conj out-file))})
+
+        {:state            state
+         :client/responses [{:command   "completionInfo"
+                             :type      "response"
+                             :success   false
+                             :interop   nil
+                             :requestId (:requestId req)
+                             :message   (str "No interop found at " loc)}]}))))
 
 (defmulti
  handle-client-request

@@ -3,7 +3,8 @@
   (:require [clojure.string :as str]
             [boonmee.compiler.analyser :as ana]
             [boonmee.util :as util])
-  (:import (java.io File)))
+  (:import (java.io File)
+           (clojure.lang ExceptionInfo)))
 
 (defn import-statements
   [args]
@@ -134,13 +135,20 @@
 
 (defn compile
   [env ^File file form]
-  (let [ctx       (ana/analyse-file env file)
-        ext       (last (str/split (.getName file) #"\."))
-        compiled  (compile-form ctx form)
-        file-name (file-name (:ns ctx) ext (:js-out compiled))]
-    {:ctx       ctx
-     :compiled  compiled
-     :ext       ext
-     :form      form
-     :file-name file-name
-     :env       env}))
+  (try
+    (let [ctx       (ana/analyse-file env file)
+          ext       (last (str/split (.getName file) #"\."))
+          compiled  (compile-form ctx form)
+          file-name (file-name (:ns ctx) ext (:js-out compiled))]
+      {:ctx       ctx
+       :compiled  compiled
+       :ext       ext
+       :form      form
+       :file-name file-name
+       :env       env})
+    (catch ExceptionInfo e
+      (let [data (ex-data e)]
+        ;; For now, treat reader errors as a no-op.
+        ;; TODO: (maybe) better analysis of partially complete forms.
+        (when-not (and (= (:reader-exception (:type data))) (= :reader-error (:ex-kind data)))
+          (throw e))))))

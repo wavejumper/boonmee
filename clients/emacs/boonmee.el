@@ -55,6 +55,9 @@
        ((and (string= "completionInfo" command) success)
         (boonmee-handle-completion resp))
 
+       ((string= "info" command)
+        (print output))
+
        ((not success) nil)
        (t (message (concat "boonmee: cannot handle command " command) ))))))
 
@@ -126,12 +129,17 @@
   (when (bound-and-true-p boonmee-mode)
     (boonmee-quickinfo)))
 
+(defun boonmee-info ()
+  (let ((req (json-encode (list :command "info" :type "request" :requestId "-1"))))
+    (process-send-string "boonmee" (concat req "~\n"))))
+
 (define-minor-mode boonmee-mode
   "Clojure intellisense"
   :group 'boonmee
   (when boonmee-mode
     (progn
       (boonmee-init)
+      (boonmee-info)
       (unless boonmee-global-timer
         (setq boonmee-global-timer
               (run-with-idle-timer boonmee-idle-time
