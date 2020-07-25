@@ -69,6 +69,14 @@
 (defun boonmee-request-id ()
   (number-to-string (float-time)))
 
+(defun boonmee-req-file (file project-root)
+  (if (buffer-modified-p (current-buffer))
+      (let ((out-file (concat project-root ".boonmee/cache/" (file-name-nondirectory file))))
+        (make-directory (file-name-directory out-file) :parents)
+        (write-region (point-min) (point-max) out-file)
+        out-file)
+      file))
+
 (defun boonmee-goto-definition ()
   (interactive)
   (when-let ((file (buffer-file-name))
@@ -76,7 +84,8 @@
     (let* ((line (string-to-number (format-mode-line "%l")))
            (offset (string-to-number (format-mode-line "%c")))
            (req-id (boonmee-request-id))
-           (args (list :file file :line line :offset offset :projectRoot root))
+           (req-file (boonmee-req-file file root))
+           (args (list :file req-file :line line :offset offset :projectRoot root))
            (req (json-encode (list :command "definition" :type "request" :requestId req-id :arguments args))))
       (process-send-string "boonmee" (concat req "~\n")))))
 
@@ -87,12 +96,17 @@
     (let* ((line (string-to-number (format-mode-line "%l")))
            (offset (string-to-number (format-mode-line "%c")))
            (req-id (boonmee-request-id))
-           (args (list :file file :line line :offset offset :projectRoot root))
+           (req-file (boonmee-req-file file root))
+           (args (list :file req-file :line line :offset offset :projectRoot root))
            (req (json-encode (list :command "quickinfo" :type "request" :requestId req-id :arguments args))))
       (process-send-string "boonmee" (concat req "~\n")))))
 
 (defvar boonmee-global-timer nil
   "Timer to trigger quickinfo.")
+
+(defun boonmee-intellisense ()
+  (when (bound-and-true-p boonmee-mode)
+    (boonmee-quickinfo)))
 
 (define-minor-mode boonmee-mode
   "Clojure intellisense"
@@ -103,6 +117,6 @@
       (unless boonmee-global-timer
         (setq boonmee-global-timer
               (run-with-idle-timer boonmee-idle-time
-                                   :repeat 'boonmee-quickinfo))))))
+                                   :repeat 'boonmee-intellisense))))))
 
 (provide 'boonmee-mode)
