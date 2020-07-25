@@ -2,6 +2,7 @@
   (:require [boonmee.server]
             [boonmee.tsserver.server]
             [boonmee.util :as util]
+            [boonmee.logging :as log]
             [clojure.core.async :as async]
             [clojure.data.json :as json]
             [integrant.core :as ig])
@@ -29,9 +30,10 @@
 
 (defmethod ig/init-key
   :boonmee/stdio-client
-  [_ {:keys [client-req-ch client-resp-ch in out]}]
+  [_ {:keys [client-req-ch client-resp-ch in out logger]}]
   {:in  (util/line-handler [line in]
           (try
+            #_(log/info logger line)
             (let [req (json/read-str line :key-fn keyword)]
               (async/put! client-req-ch req))
             (catch Throwable e
@@ -42,6 +44,7 @@
    :out (async/go-loop []
           (when-let [resp (async/<! client-resp-ch)]
             (try
+              #_(log/info logger resp)
               (print-out out resp)
               (catch Throwable e
                 (async/put! client-resp-ch {:command "error"
@@ -82,7 +85,8 @@
                                                             :env    (:env opts)}}
    :boonmee/stdio-client                {:client-req-ch  (ig/ref :chan/client-req-ch)
                                          :client-resp-ch (ig/ref :chan/client-resp-ch)
+                                         :logger         (ig/ref :logger/file-logger)
                                          :in             (ig/ref :boonmee/stdio-reader)
                                          :out            System/out}
    :boonmee/stdio-reader                {:in System/in}
-   :logger/file-logger                  {:fname "boonmee.log"}})
+   :logger/file-logger                  {:fname (:log-file opts)}})

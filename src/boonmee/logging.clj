@@ -19,6 +19,7 @@
         appender (async/go-loop []
                    (when-let [msg (async/<! ch)]
                      (.write writer (pr-str msg))
+                     (.flush writer)
                      (recur)))]
     (reify
       Logger

@@ -7,16 +7,19 @@
   (:gen-class))
 
 (def cli-options
-  [["-c" "--client" "Specify client"
+  [["-c" "--client client" "Specify client"
     :default "stdio"
     :validate [#{"stdio"} "Must be either #{stdio"]]
 
-   ["-e" "--env" "JS Environment"
+   ["-e" "--env env" "JS Environment"
     :default "browser"
     :validate [#{"browser" "node"} "Must be either #{browser node}"]]
 
-   ["-T" "--tsserver" "tsserver"
+   ["-T" "--tsserver tsserver" "tsserver"
     :default "tsserver"]
+
+   ["-L" "--log-file log-file" "Log file location"
+    :default "boonmee.log"]
 
    ["-v" "--version"]
 

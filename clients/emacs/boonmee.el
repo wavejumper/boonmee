@@ -10,6 +10,11 @@
   :group 'boonmee
   :type 'string)
 
+(defcustom boonmee-log-file (make-temp-file "boonmee.log")
+  "The file name boonmee will log to"
+  :group 'boonmee
+  :type 'string)
+
 (defun boonmee-handle-error (resp)
   (print "boonmee: error"))
 
@@ -29,56 +34,62 @@
     (message display-string)))
 
 (defun boonmee-handle-response (process output)
-  (let* ((json-object-type 'plist)
-         (resp (json-read-from-string output))
-         (command (plist-get resp :command))
-         (success (eq (plist-get resp :success) t)))
-    (cond
-     ((string= "error" command)
-      (boonmee-handle-error resp))
+  (ignore-errors
+    (let* ((json-object-type 'plist)
+           (resp (json-read-from-string output))
+           (command (plist-get resp :command))
+           (success (eq (plist-get resp :success) t)))
+      (cond
+       ((string= "error" command)
+        (boonmee-handle-error resp))
 
-     ((and (string= "definition" command) success)
-      (boonmee-handle-definition resp))
+       ((and (string= "definition" command) success)
+        (boonmee-handle-definition resp))
 
-     ((and (string= "quickinfo" command) success)
-      (boonmee-handle-quickinfo resp))
+       ((and (string= "quickinfo" command) success)
+        (boonmee-handle-quickinfo resp))
 
-     ((not success) nil)
-     (t (message (concat "boonmee: cannot handle command " command) )))))
+       ((not success) nil)
+       (t (message (concat "boonmee: cannot handle command " command) ))))))
 
 (defun boonmee-init ()
   (if (get-process "boonmee")
       nil
-    (let ((proc (start-process "boonmee" "boonmee-out" boonmee-command)))
+    (let ((proc (start-process "boonmee" "boonmee-out" boonmee-command "-L" boonmee-log-file)))
+      (print (concat "boonmee: logging to " boonmee-log-file))
       (set-process-filter proc 'boonmee-handle-response))))
 
 (defun boonmee-project-root (file)
-  (let ((dir (file-name-directory file)))
-    (if (file-exists-p (concat dir "node_modules"))
+  (when-let ((dir (file-name-directory (directory-file-name file))))
+    (if (file-exists-p (concat dir "package.json"))
         dir
-      (project-root dir))))
+      (when (not (string= dir (file-name-directory (directory-file-name dir))))
+        (boonmee-project-root dir)))))
+
+(defun boonmee-request-id ()
+  (number-to-string (float-time)))
 
 (defun boonmee-goto-definition ()
   (interactive)
-  (let* ((line (string-to-number (format-mode-line "%l")))
-         (offset (string-to-number (format-mode-line "%c")))
-         (file (buffer-file-name))
-         ;; TODO: generate unique request id
-         (req-id "1234")
-         (args (list :file file :line line :offset offset :projectRoot (file-name-directory file)))
-         (req (json-encode (list :command "definition" :type "request" :requestId req-id :arguments args))))
-    (process-send-string "boonmee" (concat req "~\n"))))
+  (when-let ((file (buffer-file-name))
+             (root (boonmee-project-root file)))
+    (let* ((line (string-to-number (format-mode-line "%l")))
+           (offset (string-to-number (format-mode-line "%c")))
+           (req-id (boonmee-request-id))
+           (args (list :file file :line line :offset offset :projectRoot root))
+           (req (json-encode (list :command "definition" :type "request" :requestId req-id :arguments args))))
+      (process-send-string "boonmee" (concat req "~\n")))))
 
 (defun boonmee-quickinfo ()
   (interactive)
-  (let* ((line (string-to-number (format-mode-line "%l")))
-         (offset (string-to-number (format-mode-line "%c")))
-         (file (buffer-file-name))
-         ;; TODO: generate unique request id
-         (req-id "1234")
-         (args (list :file file :line line :offset offset :projectRoot (file-name-directory file)))
-         (req (json-encode (list :command "quickinfo" :type "request" :requestId req-id :arguments args))))
-    (process-send-string "boonmee" (concat req "~\n"))))
+  (when-let* ((file (buffer-file-name))
+              (root (boonmee-project-root file)))
+    (let* ((line (string-to-number (format-mode-line "%l")))
+           (offset (string-to-number (format-mode-line "%c")))
+           (req-id (boonmee-request-id))
+           (args (list :file file :line line :offset offset :projectRoot root))
+           (req (json-encode (list :command "quickinfo" :type "request" :requestId req-id :arguments args))))
+      (process-send-string "boonmee" (concat req "~\n")))))
 
 (defvar boonmee-global-timer nil
   "Timer to trigger quickinfo.")
