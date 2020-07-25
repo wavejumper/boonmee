@@ -105,7 +105,7 @@ WIP emacs client, currently supports:
 In your `init.el`, add something like:
 
 ```emacs-lisp
-(add-hook 'clojure-mode-hook (lambda() (boonmee-init)))
+(add-hook 'clojure-mode-hook (lambda() (boonmee-mode t)))
 ```
 
 ## ClojureScript 
